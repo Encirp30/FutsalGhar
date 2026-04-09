@@ -1,0 +1,603 @@
+/* InviteFriends.css - Complete */
+
+/* Main Container */
+.invite-friends-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  min-height: calc(100vh - 200px);
+  padding-top: 16px;
+}
+
+/* Content Layout */
+.invite-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 1024px) {
+  .invite-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Left Column */
+.invite-left {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Cards Common Styles */
+.referral-card,
+.share-card,
+.email-invite-card,
+.rewards-card,
+.stats-card,
+.friends-list-card,
+.tips-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s;
+}
+
+.referral-card:hover,
+.share-card:hover,
+.email-invite-card:hover,
+.rewards-card:hover,
+.stats-card:hover,
+.friends-list-card:hover,
+.tips-card:hover {
+  border-color: #3b82f6;
+}
+
+h3 {
+  font-size: 20px;
+  color: #1e293b;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Referral Link Card */
+.referral-description {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.referral-link-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.referral-link-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: monospace;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.referral-link-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.copy-btn {
+  padding: 12px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: #2563eb;
+}
+
+.copy-btn.copied {
+  background: #10b981;
+}
+
+/* Share Buttons */
+.share-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: white;
+}
+
+.share-icon {
+  font-size: 18px;
+}
+
+.share-btn.whatsapp {
+  background: #25D366;
+}
+
+.share-btn.whatsapp:hover {
+  background: #128C7E;
+}
+
+.share-btn.facebook {
+  background: #1877F2;
+}
+
+.share-btn.facebook:hover {
+  background: #1664c0;
+}
+
+.share-btn.twitter {
+  background: #1DA1F2;
+}
+
+.share-btn.twitter:hover {
+  background: #0d8ae0;
+}
+
+.share-btn.email {
+  background: #6c757d;
+}
+
+.share-btn.email:hover {
+  background: #5a6268;
+}
+
+/* Email Invite Card */
+.email-description {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 15px;
+}
+
+.email-input-group {
+  display: flex;
+  gap: 12px;
+}
+
+.email-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.email-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.send-invite-btn {
+  padding: 12px 24px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.send-invite-btn:hover {
+  background: #059669;
+}
+
+/* Rewards Card */
+.rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.reward-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 10px;
+}
+
+.reward-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.reward-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.reward-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Right Column */
+.invite-right {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Stats Card */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-box {
+  text-align: center;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 5px;
+}
+
+.progress-bar-container {
+  margin-top: 15px;
+}
+
+.progress-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+/* Friends List */
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.friend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.friend-item:hover {
+  border-color: #3b82f6;
+}
+
+.friend-avatar {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.pending-avatar {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+}
+
+.friend-info {
+  flex: 1;
+}
+
+.friend-name {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.friend-email {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.friend-date {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.friend-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.joined-badge {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.remind-btn {
+  padding: 6px 16px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.remind-btn:hover {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.pending-title {
+  margin-top: 20px;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.empty-friends-message {
+  text-align: center;
+  padding: 20px;
+  color: #94a3b8;
+}
+
+/* Tips Card */
+.tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tips-list li {
+  padding: 10px 0;
+  color: #475569;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.tips-list li:last-child {
+  border-bottom: none;
+}
+
+.tips-list li::before {
+  
+  font-size: 16px;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.loading-spinner {
+  width: 45px;
+  height: 45px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  color: #64748b;
+  font-size: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .invite-friends-page {
+    padding: 0 15px;
+  }
+  
+  .referral-link-container {
+    flex-direction: column;
+  }
+  
+  .copy-btn {
+    width: 100%;
+  }
+  
+  .share-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .rewards-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .email-input-group {
+    flex-direction: column;
+  }
+  
+  .send-invite-btn {
+    width: 100%;
+  }
+  
+  .invite-content {
+    gap: 20px;
+  }
+  
+  .referral-card,
+  .share-card,
+  .email-invite-card,
+  .rewards-card,
+  .stats-card,
+  .friends-list-card,
+  .tips-card {
+    padding: 20px;
+  }
+  
+  h3 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .invite-friends-page {
+    padding: 0 12px;
+  }
+  
+  .stat-number {
+    font-size: 22px;
+  }
+  
+  .friend-item {
+    flex-wrap: wrap;
+  }
+  
+  .remind-btn {
+    width: 100%;
+    margin-top: 8px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .stat-box {
+    padding: 10px;
+  }
+  
+  .reward-item {
+    padding: 10px;
+  }
+  
+  .reward-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+  
+  .reward-value {
+    font-size: 13px;
+  }
+  
+  .reward-label {
+    font-size: 10px;
+  }
+  
+  .referral-link-input {
+    font-size: 12px;
+    padding: 10px 12px;
+  }
+  
+  .copy-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .share-btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+  
+  .send-invite-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .tips-list li {
+    font-size: 13px;
+    padding: 8px 0;
+  }
+}

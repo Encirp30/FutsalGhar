@@ -1,0 +1,271 @@
+/* Container to make it a full page */
+.create-team-page-container {
+    min-height: 100vh;
+    width: 100%;
+    background-color: #f8fafc;
+    padding-bottom: 50px;
+}
+
+.create-team-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Progress Steps */
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 50px;
+    position: relative;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 22px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e2e8f0;
+    z-index: 1;
+}
+
+.step {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f8fafc; /* Matches page bg */
+    padding: 0 20px;
+}
+
+.step-circle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.step.active .step-circle {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+}
+
+.step-label {
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.step.active .step-label {
+    color: #3b82f6;
+}
+
+/* Main Form Card */
+.step-content {
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.form-group.full-width {
+    grid-column: span 2;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #1e293b;
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+/* Player Management */
+.add-player-form {
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 40px;
+}
+
+.player-input-grid {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr auto;
+    gap: 15px;
+}
+
+.player-input {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.add-player-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Player Grid - NO SCROLL */
+.players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.player-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s ease;
+}
+
+.player-card.captain {
+    border-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.player-card.inactive {
+    opacity: 0.6;
+    background: #f8fafc;
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.player-jersey {
+    width: 40px;
+    height: 40px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.player-info h4 {
+    font-size: 18px;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.player-position {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.player-footer {
+    border-top: 1px solid #f1f5f9;
+    padding-top: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.captain-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.captain-btn.is-captain {
+    background: #f59e0b;
+    color: white;
+    border-color: #f59e0b;
+}
+
+/* Nav Buttons */
+.step-actions {
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.next-btn, .create-team-btn {
+    background: #3b82f6;
+    color: white;
+    padding: 14px 30px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.back-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    padding: 14px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.form-error-message {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.success-section { text-align: center; padding: 60px 0; }
+.success-icon { font-size: 64px; margin-bottom: 20px; }
