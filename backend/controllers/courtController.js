@@ -115,7 +115,7 @@ exports.createCourt = async (req, res) => {
 
     await court.save();
 
-    // ✅ NOTIFICATION: Notify manager that court was created
+    // NOTIFICATION: Notify manager that court was created
     try {
       await Notification.create({
         user: req.userId,
@@ -159,7 +159,7 @@ exports.createCourt = async (req, res) => {
   }
 };
 
-// Update court (for managers)
+// Update court (for managers and admins) - FIXED: Admin can update any court
 exports.updateCourt = async (req, res) => {
   try {
     const { id } = req.params;
@@ -174,8 +174,11 @@ exports.updateCourt = async (req, res) => {
       });
     }
 
-    // Verify ownership
-    if (court.owner.toString() !== req.userId.toString()) {
+    // Check if user is admin OR the court owner
+    const isAdmin = req.userRole === 'admin';
+    const isOwner = court.owner.toString() === req.userId.toString();
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this court'
@@ -195,11 +198,11 @@ exports.updateCourt = async (req, res) => {
     court.updatedAt = Date.now();
     await court.save();
 
-    // ✅ NOTIFICATION: Notify manager if court status changed
+    // Notify manager if court status changed
     if (oldStatus && newStatus && oldStatus !== newStatus) {
       try {
         await Notification.create({
-          user: req.userId,
+          user: court.owner,
           type: 'court_status_updated',
           title: 'Court Status Updated',
           message: `Your court "${court.name}" is now ${newStatus === 'open' ? 'Open' : 'Closed'}.`,
@@ -226,10 +229,18 @@ exports.updateCourt = async (req, res) => {
   }
 };
 
-// Get manager's courts
+// Get manager's courts (or all courts for admin) - FIXED: Admin sees all courts
 exports.getManagerCourts = async (req, res) => {
   try {
-    const courts = await Court.find({ owner: req.userId });
+    let courts;
+    
+    // If admin, return all courts
+    if (req.userRole === 'admin') {
+      courts = await Court.find().populate('owner', 'fullName phone');
+    } else {
+      // If manager, return only their courts
+      courts = await Court.find({ owner: req.userId }).populate('owner', 'fullName phone');
+    }
 
     res.json({
       success: true,
@@ -287,7 +298,7 @@ exports.blockTimeSlot = async (req, res) => {
   }
 };
 
-// Delete court
+// Delete court (for managers and admins) - FIXED: Admin can delete any court
 exports.deleteCourt = async (req, res) => {
   try {
     const { id } = req.params;
@@ -300,8 +311,11 @@ exports.deleteCourt = async (req, res) => {
       });
     }
 
-    // Verify ownership
-    if (court.owner.toString() !== req.userId.toString()) {
+    // Check if user is admin OR the court owner
+    const isAdmin = req.userRole === 'admin';
+    const isOwner = court.owner.toString() === req.userId.toString();
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this court'
@@ -311,10 +325,10 @@ exports.deleteCourt = async (req, res) => {
     const courtName = court.name;
     await Court.findByIdAndDelete(id);
 
-    // ✅ NOTIFICATION: Notify manager that court was deleted
+    // Notify manager that court was deleted
     try {
       await Notification.create({
-        user: req.userId,
+        user: court.owner,
         type: 'court_deleted',
         title: 'Court Deleted',
         message: `Your court "${courtName}" has been deleted.`,

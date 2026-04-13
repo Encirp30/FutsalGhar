@@ -15,6 +15,7 @@ const ManagerPlayers = () => {
   const [selectedPlayerTeam, setSelectedPlayerTeam] = useState(null);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [playerDetailsMap, setPlayerDetailsMap] = useState({});
+  const [completedMatchesCount, setCompletedMatchesCount] = useState(0);
 
   useEffect(() => {
     const fetchManagerPlayers = async () => {
@@ -34,6 +35,16 @@ const ManagerPlayers = () => {
         }
         
         setUser(userData.user);
+        
+        try {
+          const matchesResponse = await apiFetch('/matches');
+          const allMatches = matchesResponse.matches || matchesResponse.data || [];
+          const completedCount = allMatches.filter(m => m.status === 'completed').length;
+          setCompletedMatchesCount(completedCount);
+        } catch (matchError) {
+          console.log('Error fetching matches:', matchError);
+          setCompletedMatchesCount(0);
+        }
         
         const teamsData = await api.getTeams();
         const allTeams = teamsData.data || [];
@@ -174,7 +185,7 @@ const ManagerPlayers = () => {
 
   const totalPlayers = players.length;
   const totalGoals = players.reduce((sum, p) => sum + (p.goals || 0), 0);
-  const totalMatches = players.reduce((sum, p) => sum + (p.matchesPlayed || 0), 0);
+  const totalMatches = completedMatchesCount;
 
   if (loading) {
     return (
@@ -188,13 +199,7 @@ const ManagerPlayers = () => {
   return (
     <Layout activePage="managerPlayers">
       <div className="manager-players-page">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Players Management</h1>
-            <p className="page-subtitle">View all players and their statistics</p>
-          </div>
-        </div>
-
+        {/* Stats Section - No Header */}
         <div className="stats-section">
           <div className="stats-grid">
             <div className="stat-card">

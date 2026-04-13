@@ -9,8 +9,8 @@
   background: #f8fafc;
 }
 
-/* Header Section */
-.teams-header-section {
+/* Header Section - REMOVED */
+/* .teams-header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -30,7 +30,7 @@
   font-size: 14px;
   color: #64748b;
   margin: 0;
-}
+} */
 
 .create-team-btn-header {
   background: #3b82f6;

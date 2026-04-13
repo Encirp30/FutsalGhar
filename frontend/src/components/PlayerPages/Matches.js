@@ -20,6 +20,8 @@ const Matches = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [matchToDelete, setMatchToDelete] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsDataLoaded, setStatsDataLoaded] = useState(false);
   
   // Team players data
   const [teamAPlayers, setTeamAPlayers] = useState([]);
@@ -69,6 +71,29 @@ const Matches = () => {
       return '';
     }
     return '';
+  };
+
+  // Helper function to get player name from player object or ID
+  const getPlayerName = (player, teamAList = teamAPlayers, teamBList = teamBPlayers) => {
+    if (!player) return 'Unknown';
+    
+    // If player is already an object with name
+    if (typeof player === 'object') {
+      if (player.fullName) return player.fullName;
+      if (player.username) return player.username;
+      if (player.name) return player.name;
+      return player._id || 'Unknown';
+    }
+    
+    // If it's a string (player ID)
+    if (typeof player === 'string') {
+      const allList = [...teamAList, ...teamBList];
+      const found = allList.find(p => p.playerId === player || p._id === player || p.player === player);
+      if (found?.name) return found.name;
+      return player;
+    }
+    
+    return 'Unknown';
   };
 
   const getLocationString = (location) => {
@@ -123,6 +148,49 @@ const Matches = () => {
     fetchData();
   }, [navigate]);
 
+  // Fetch player data when stats modal opens
+  useEffect(() => {
+    if (showStatsModal && selectedMatch && !statsDataLoaded) {
+      const fetchPlayerDataForStats = async () => {
+        setStatsLoading(true);
+        try {
+          const teamAId = selectedMatch.teamA?._id || selectedMatch.teamA;
+          const teamBId = selectedMatch.teamB?._id || selectedMatch.teamB;
+          
+          const [teamAData, teamBData] = await Promise.all([
+            apiFetch(`/teams/${teamAId}`),
+            apiFetch(`/teams/${teamBId}`)
+          ]);
+          
+          const teamAPlayersList = (teamAData.team?.players || teamAData.data?.players || []).map(p => ({
+            ...p,
+            playerId: p.player?._id || (typeof p.player === 'string' ? p.player : p._id),
+            name: p.name,
+            position: p.position || 'Player'
+          }));
+          
+          const teamBPlayersList = (teamBData.team?.players || teamBData.data?.players || []).map(p => ({
+            ...p,
+            playerId: p.player?._id || (typeof p.player === 'string' ? p.player : p._id),
+            name: p.name,
+            position: p.position || 'Player'
+          }));
+          
+          setTeamAPlayers(teamAPlayersList);
+          setTeamBPlayers(teamBPlayersList);
+          setAllPlayers([...teamAPlayersList, ...teamBPlayersList]);
+          setStatsDataLoaded(true);
+        } catch (error) {
+          console.error('Error fetching player data for stats:', error);
+        } finally {
+          setStatsLoading(false);
+        }
+      };
+      
+      fetchPlayerDataForStats();
+    }
+  }, [showStatsModal, selectedMatch, statsDataLoaded]);
+
   const canEditResults = () => {
     return user?.role === 'admin' || user?.role === 'manager';
   };
@@ -150,10 +218,20 @@ const Matches = () => {
     return { class: 'status-upcoming', text: 'Upcoming' };
   };
 
-  const handleViewStats = (match) => {
+const handleViewStats = async (match) => {
+  // Fetch fresh match data with populated names
+  try {
+    const matchId = match._id || match.id;
+    const response = await apiFetch(`/matches/${matchId}`);
+    const freshMatch = response.match || response.data;
+    setSelectedMatch(freshMatch);
+    setShowStatsModal(true);
+  } catch (error) {
+    console.error('Error fetching match details:', error);
     setSelectedMatch(match);
     setShowStatsModal(true);
-  };
+  }
+};
 
   const handleDeleteMatch = async () => {
     if (!matchToDelete) return;
@@ -168,7 +246,6 @@ const Matches = () => {
         setShowDeleteConfirm(false);
         setMatchToDelete(null);
         
-        // Refresh matches list
         const matchesData = await api.getMatches();
         setMatches(matchesData.data || matchesData.matches || []);
       } else {
@@ -296,17 +373,17 @@ const Matches = () => {
         apiFetch(`/teams/${teamBId}`)
       ]);
       
-      // Process players to extract IDs properly
+      // FIXED: Prioritize p.player._id (User ID) over p._id (team entry ID)
       const teamAPlayersList = (teamAData.team?.players || teamAData.data?.players || []).map(p => ({
         ...p,
-        playerId: getPlayerId(p),
+        playerId: p.player?._id || (typeof p.player === 'string' ? p.player : p._id),
         name: p.name,
         position: p.position || 'Player'
       }));
       
       const teamBPlayersList = (teamBData.team?.players || teamBData.data?.players || []).map(p => ({
         ...p,
-        playerId: getPlayerId(p),
+        playerId: p.player?._id || (typeof p.player === 'string' ? p.player : p._id),
         name: p.name,
         position: p.position || 'Player'
       }));
@@ -333,7 +410,7 @@ const Matches = () => {
     
     if (field === 'player') {
       updated[index].player = value;
-      const isTeamA = teamAPlayers.some(p => p.playerId === value || p.player === value);
+      const isTeamA = teamAPlayers.some(p => p.playerId === value);
       updated[index].team = isTeamA ? 'teamA' : 'teamB';
     } else if (field === 'assistBy') {
       updated[index].assistBy = value;
@@ -363,7 +440,7 @@ const Matches = () => {
     
     if (field === 'player') {
       updated[index].player = value;
-      const isTeamA = teamAPlayers.some(p => p.playerId === value || p.player === value);
+      const isTeamA = teamAPlayers.some(p => p.playerId === value);
       updated[index].team = isTeamA ? 'teamA' : 'teamB';
     } else {
       updated[index][field] = value;
@@ -449,20 +526,6 @@ const Matches = () => {
   return (
     <Layout activePage="matches">
       <div className="matches-page">
-        <div className="page-header">
-          <div className="header-actions">
-            <div>
-              <h1 className="page-title">Matches</h1>
-              <p className="page-subtitle">View and manage match schedules</p>
-            </div>
-            {canCreateMatches && (
-              <button className="create-match-btn" onClick={() => setShowCreateModal(true)}>
-                + Create Match
-              </button>
-            )}
-          </div>
-        </div>
-
         <div className="filters-bar">
           <div className="filter-group">
             <label>Tournament:</label>
@@ -503,6 +566,12 @@ const Matches = () => {
               </button>
             </div>
           </div>
+          
+          {canCreateMatches && (
+            <button className="create-match-btn" onClick={() => setShowCreateModal(true)}>
+              + Create Match
+            </button>
+          )}
         </div>
 
         <div className="matches-grid">
@@ -630,74 +699,83 @@ const Matches = () => {
               <button className="close-modal" onClick={() => setShowStatsModal(false)}>×</button>
             </div>
             <div className="modal-content">
-              <div className="match-info">
-                <div className="match-title">{selectedMatch.tournament?.name || selectedMatch.tournamentName}</div>
-                <div className="match-round">{selectedMatch.round || 'Group Stage'}</div>
-                <div className="match-date">
-                  {selectedMatch.scheduledDate ? new Date(selectedMatch.scheduledDate).toLocaleDateString() : selectedMatch.date} | 
-                  {selectedMatch.startTime || selectedMatch.time} | 
-                  {getVenueDisplay(selectedMatch.court)}
+              {statsLoading || !statsDataLoaded ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <div className="loading-spinner" style={{ width: '30px', height: '30px' }}></div>
+                  <p>Loading match details...</p>
                 </div>
-              </div>
-              
-              <div className="score-display">
-                <div className="score-team-display">
-                  <div className="team-name">{selectedMatch.teamA?.name || selectedMatch.teamAName}</div>
-                  <div className="team-score-large">{selectedMatch.teamAScore ?? selectedMatch.team1?.score ?? '?'}</div>
-                  {selectedMatch.teamAFormation && (
-                    <div className="team-formation">Formation: {selectedMatch.teamAFormation}</div>
-                  )}
-                </div>
-                <div className="vs-display">VS</div>
-                <div className="score-team-display">
-                  <div className="team-name">{selectedMatch.teamB?.name || selectedMatch.teamBName}</div>
-                  <div className="team-score-large">{selectedMatch.teamBScore ?? selectedMatch.team2?.score ?? '?'}</div>
-                  {selectedMatch.teamBFormation && (
-                    <div className="team-formation">Formation: {selectedMatch.teamBFormation}</div>
-                  )}
-                </div>
-              </div>
-              
-              {selectedMatch.goalScorers && selectedMatch.goalScorers.length > 0 && (
-                <div className="stats-section">
-                  <h4>Goal Scorers</h4>
-                  <div className="goals-list">
-                    {selectedMatch.goalScorers.map((goal, idx) => (
-                      <div key={idx} className="goal-item">
-                        <span className="goal-minute">{goal.minute}'</span>
-                        <span className="goal-player">{goal.player?.name || goal.player}</span>
-                        <span className="goal-team">({goal.team === 'teamA' ? 'Team A' : 'Team B'})</span>
-                        {goal.assistBy && (
-                          <span className="goal-assist">Assist: {goal.assistBy?.name || goal.assistBy}</span>
-                        )}
-                      </div>
-                    ))}
+              ) : (
+                <>
+                  <div className="match-info">
+                    <div className="match-title">{selectedMatch.tournament?.name || selectedMatch.tournamentName}</div>
+                    <div className="match-round">{selectedMatch.round || 'Group Stage'}</div>
+                    <div className="match-date">
+                      {selectedMatch.scheduledDate ? new Date(selectedMatch.scheduledDate).toLocaleDateString() : selectedMatch.date} | 
+                      {selectedMatch.startTime || selectedMatch.time} | 
+                      {getVenueDisplay(selectedMatch.court)}
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {selectedMatch.cards && selectedMatch.cards.length > 0 && (
-                <div className="stats-section">
-                  <h4>Cards</h4>
-                  <div className="cards-list">
-                    {selectedMatch.cards.map((card, idx) => (
-                      <div key={idx} className="card-item">
-                        <span className="card-minute">{card.minute}'</span>
-                        <span className="card-player">{card.player?.name || card.player}</span>
-                        <span className="card-team">({card.team === 'teamA' ? 'Team A' : 'Team B'})</span>
-                        <span className={`card-badge ${card.cardType === 'yellow' ? 'yellow' : 'red'}`}>
-                          {card.cardType === 'yellow' ? 'Yellow Card' : 'Red Card'}
-                        </span>
-                      </div>
-                    ))}
+                  
+                  <div className="score-display">
+                    <div className="score-team-display">
+                      <div className="team-name">{selectedMatch.teamA?.name || selectedMatch.teamAName}</div>
+                      <div className="team-score-large">{selectedMatch.teamAScore ?? selectedMatch.team1?.score ?? '?'}</div>
+                      {selectedMatch.teamAFormation && (
+                        <div className="team-formation">Formation: {selectedMatch.teamAFormation}</div>
+                      )}
+                    </div>
+                    <div className="vs-display">VS</div>
+                    <div className="score-team-display">
+                      <div className="team-name">{selectedMatch.teamB?.name || selectedMatch.teamBName}</div>
+                      <div className="team-score-large">{selectedMatch.teamBScore ?? selectedMatch.team2?.score ?? '?'}</div>
+                      {selectedMatch.teamBFormation && (
+                        <div className="team-formation">Formation: {selectedMatch.teamBFormation}</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {selectedMatch.manOfTheMatch && (
-                <div className="man-of-match-display">
-                  Man of the Match: <strong>{selectedMatch.manOfTheMatch?.name || selectedMatch.manOfTheMatch}</strong>
-                </div>
+                  
+                  {selectedMatch.goalScorers && selectedMatch.goalScorers.length > 0 && (
+                    <div className="stats-section">
+                      <h4>Goal Scorers</h4>
+                      <div className="goals-list">
+                        {selectedMatch.goalScorers.map((goal, idx) => (
+                          <div key={idx} className="goal-item">
+                            <span className="goal-minute">{goal.minute}'</span>
+                            <span className="goal-player">{getPlayerName(goal.player, teamAPlayers, teamBPlayers)}</span>
+                            <span className="goal-team">({goal.team === 'teamA' ? 'Team A' : 'Team B'})</span>
+                            {goal.assistBy && (
+                              <span className="goal-assist">Assist: {getPlayerName(goal.assistBy, teamAPlayers, teamBPlayers)}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedMatch.cards && selectedMatch.cards.length > 0 && (
+                    <div className="stats-section">
+                      <h4>Cards</h4>
+                      <div className="cards-list">
+                        {selectedMatch.cards.map((card, idx) => (
+                          <div key={idx} className="card-item">
+                            <span className="card-minute">{card.minute}'</span>
+                            <span className="card-player">{getPlayerName(card.player, teamAPlayers, teamBPlayers)}</span>
+                            <span className="card-team">({card.team === 'teamA' ? 'Team A' : 'Team B'})</span>
+                            <span className={`card-badge ${card.cardType === 'yellow' ? 'yellow' : 'red'}`}>
+                              {card.cardType === 'yellow' ? 'Yellow Card' : 'Red Card'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedMatch.manOfTheMatch && (
+                    <div className="man-of-match-display">
+                      Man of the Match: <strong>{getPlayerName(selectedMatch.manOfTheMatch, teamAPlayers, teamBPlayers)}</strong>
+                    </div>
+                  )}
+                </>
               )}
             </div>
             <div className="modal-actions">
@@ -846,7 +924,7 @@ const Matches = () => {
         </div>
       )}
 
-      {/* Result Entry Modal - Keep existing */}
+      {/* Result Entry Modal */}
       {showResultModal && selectedMatch && (
         <div className="modal-overlay" onClick={() => setShowResultModal(false)}>
           <div className="result-modal" onClick={(e) => e.stopPropagation()}>

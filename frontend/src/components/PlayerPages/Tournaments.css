@@ -9,8 +9,8 @@
   background: #f8fafc;
 }
 
-/* Page Header */
-.page-header {
+/* Page Header - REMOVED */
+/* .page-header {
   margin-bottom: 30px;
   padding: 20px 0;
   text-align: left;
@@ -26,7 +26,7 @@
 .page-subtitle {
   font-size: 14px;
   color: #64748b;
-}
+} */
 
 /* Action Bar */
 .tournaments-action-bar {

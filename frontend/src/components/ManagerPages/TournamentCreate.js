@@ -110,11 +110,6 @@ const TournamentCreate = () => {
   return (
     <Layout activePage="tournaments">
       <div className="tournament-create-page">
-        <div className="page-header">
-          <h1 className="page-title">Create New Tournament</h1>
-          <p className="page-subtitle">Set up a tournament for teams to compete</p>
-        </div>
-
         <form onSubmit={handleSubmit} className="create-form">
           {/* Basic Information Section */}
           <div className="form-section">

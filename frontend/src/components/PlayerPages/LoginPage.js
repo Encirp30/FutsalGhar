@@ -76,10 +76,8 @@ const Login = () => {
       
       const response = await api.login(credentials);
       
-      // Store token
       setAuthToken(response.token);
       
-      // Extract name dynamically based on backend structure
       const userToSave = {
         ...response.user,
         username: response.user?.profile?.fullName || response.user?.username || formData.username || 'User'
@@ -87,7 +85,6 @@ const Login = () => {
       
       localStorage.setItem('futsalUser', JSON.stringify(userToSave));
       
-      // Navigate based on role
       const role = response.user?.role;
       if (role === 'admin') {
         navigate('/admin-panel');
@@ -115,103 +112,152 @@ const Login = () => {
 
   return (
     <div className="login-page">
-      <div className="login-container">
-        <div className="login-header">
-          <h1>Welcome Back</h1>
-          <p>Enter your details to access the pitch.</p>
+      <div className="login-grid">
+        {/* Left Side - Branding Section */}
+        <div className="login-brand">
+          <div className="brand-content">
+            <div className="brand-logo">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M8 2V6M16 2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M3 10H21" stroke="currentColor" strokeWidth="1.5"/>
+                <circle cx="12" cy="14" r="2" stroke="currentColor" strokeWidth="1.5"/>
+              </svg>
+            </div>
+            <h1 className="brand-title">FutsalGhar</h1>
+            <p className="brand-tagline">Your Ultimate Futsal Platform</p>
+            <div className="brand-features">
+              <div className="feature-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Book Courts Instantly</span>
+              </div>
+              <div className="feature-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Join Tournaments</span>
+              </div>
+              <div className="feature-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Track Team Stats</span>
+              </div>
+              <div className="feature-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Connect with Players</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {errors.form && (
-          <div className={`form-message ${isSuccessMessage ? 'success' : 'error'}`}>
-            {errors.form}
-          </div>
-        )}
+        {/* Right Side - Login Form */}
+        <div className="login-form-container">
+          <div className="login-form-wrapper">
+            <div className="login-header">
+              <h2>Welcome Back</h2>
+              <p>Enter your credentials to access your account</p>
+            </div>
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="Enter your username"
-              className={errors.username ? 'input-error' : ''}
-              disabled={isSubmitting}
-            />
-            {errors.username && (
-              <div className="error-text">{errors.username}</div>
+            {errors.form && (
+              <div className={`form-message ${isSuccessMessage ? 'success' : 'error'}`}>
+                {errors.form}
+              </div>
             )}
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <div className="password-input-wrapper">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                className={errors.password ? 'input-error' : ''}
-                disabled={isSubmitting}
-              />
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="form-group">
+                <label htmlFor="username">Username</label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="Enter your username"
+                  className={`username-input ${errors.username ? 'input-error' : ''}`}
+                  disabled={isSubmitting}
+                />
+                {errors.username && (
+                  <div className="error-text">{errors.username}</div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
+                <div className="password-wrapper">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Enter your password"
+                    className={`password-input ${errors.password ? 'input-error' : ''}`}
+                    disabled={isSubmitting}
+                  />
+                  <button 
+                    type="button"
+                    className="eye-btn"
+                    onClick={togglePasswordVisibility}
+                    disabled={isSubmitting}
+                  >
+                    {showPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="1.5"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                        <path d="M3 3L21 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="1.5"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <div className="error-text">{errors.password}</div>
+                )}
+              </div>
+
+              <div className="form-options">
+                <label className="remember-me">
+                  <input
+                    type="checkbox"
+                    name="rememberMe"
+                    checked={formData.rememberMe}
+                    onChange={handleChange}
+                    disabled={isSubmitting}
+                  />
+                  <span>Remember me</span>
+                </label>
+              </div>
+
               <button 
-                type="button"
-                className="password-toggle"
-                onClick={togglePasswordVisibility}
+                type="submit" 
+                className="signin-button"
                 disabled={isSubmitting}
-                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? 'Hide' : 'Show'}
+                {isSubmitting ? 'Signing In...' : 'Sign In'}
+              </button>
+            </form>
+
+            <div className="create-account">
+              <p>Don't have an account?</p>
+              <button 
+                onClick={goToRegister}
+                className="create-link"
+                disabled={isSubmitting}
+              >
+                Create Account
               </button>
             </div>
-            {errors.password && (
-              <div className="error-text">{errors.password}</div>
-            )}
           </div>
-
-          <div className="form-options">
-            <div className="remember-me">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                name="rememberMe"
-                checked={formData.rememberMe}
-                onChange={handleChange}
-                disabled={isSubmitting}
-              />
-              <label htmlFor="rememberMe">Remember me</label>
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            className="signin-button"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
-
-        <div className="create-account">
-          Don't have an account? 
-          <button 
-            onClick={goToRegister}
-            className="create-link"
-            disabled={isSubmitting}
-          >
-            Create Account
-          </button>
-        </div>
-
-        <div style={{ marginTop: '20px', padding: '10px', background: '#f8fafc', borderRadius: '8px', fontSize: '12px', textAlign: 'center' }}>
-          <p style={{ margin: '0', color: '#64748b' }}>Demo Credentials:</p>
-          <p style={{ margin: '5px 0 0 0', color: '#3b82f6' }}>User: test@test.com / 123456</p>
-          <p style={{ margin: '2px 0', color: '#f59e0b' }}>Manager: manager / manager123</p>
-          <p style={{ margin: '2px 0', color: '#ef4444' }}>Admin: admin / admin123</p>
         </div>
       </div>
     </div>

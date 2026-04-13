@@ -56,6 +56,17 @@ export const api = {
 
   getMe: () => apiFetch('/auth/me'),
 
+  // --- OTP Verification ---
+  sendOTP: (email) => apiFetch('/auth/send-otp', {
+    method: 'POST',
+    body: JSON.stringify({ email })
+  }),
+
+  verifyOTP: (email, otp) => apiFetch('/auth/verify-otp', {
+    method: 'POST',
+    body: JSON.stringify({ email, otp })
+  }),
+
   // --- Profile Update ---
   updateProfile: (data) =>
     apiFetch('/users/profile', {
@@ -210,6 +221,28 @@ export const api = {
   getAdminStats: () => apiFetch('/dashboard/admin/stats'),
 
   // --- Referrals ---
-  // FIXED: Changed from '/users/referral/stats' to '/referrals/stats'
+  getReferralLink: () => apiFetch('/referrals/link'),
+  
+  sendReferralInvite: (email, message) =>
+    apiFetch('/referrals/send-invite', {
+      method: 'POST',
+      body: JSON.stringify({ email, message })
+    }),
+  
+  shareReferralLink: (platform) =>
+    apiFetch('/referrals/share', {
+      method: 'POST',
+      body: JSON.stringify({ platform })
+    }),
+  
   getReferralStats: () => apiFetch('/referrals/stats'),
+  
+  getReferralHistory: (page = 1, limit = 10) =>
+    apiFetch(`/referrals/history?page=${page}&limit=${limit}`),
+  
+  verifyReferralCode: (referralCode) =>
+    apiFetch('/referrals/verify', {
+      method: 'POST',
+      body: JSON.stringify({ referralCode })
+    }),
 };

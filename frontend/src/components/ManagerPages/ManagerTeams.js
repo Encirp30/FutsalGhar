@@ -76,7 +76,7 @@ const ManagerTeams = () => {
     );
   };
 
-  // Get captain player from team - match player ID with team.captain
+  // Get captain player from team
   const getCaptainPlayer = (team) => {
     if (!team.players) return null;
     
@@ -257,14 +257,7 @@ const ManagerTeams = () => {
   return (
     <Layout activePage="managerTeams">
       <div className="manager-teams-page">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Teams Management</h1>
-            <p className="page-subtitle">View all registered teams and manage player statistics</p>
-          </div>
-        </div>
-
-        {/* Stats Section */}
+        {/* Stats Section - No Header */}
         <div className="stats-section">
           <div className="stats-grid">
             <div className="stat-card">
@@ -288,7 +281,7 @@ const ManagerTeams = () => {
                 </svg>
               </div>
               <div className="stat-info">
-                <h3>{teams.reduce((sum, t) => sum + (t.matchesPlayed || 0), 0)}</h3>
+                <h3>{teams.reduce((sum, t) => sum + (t.totalMatches || 0), 0)}</h3>
                 <p>Total Matches</p>
               </div>
             </div>
@@ -300,7 +293,7 @@ const ManagerTeams = () => {
                 </svg>
               </div>
               <div className="stat-info">
-                <h3>{teams.reduce((sum, t) => sum + (t.matchesWon || 0), 0)}</h3>
+                <h3>{teams.reduce((sum, t) => sum + (t.wins || 0), 0)}</h3>
                 <p>Total Wins</p>
               </div>
             </div>
@@ -320,7 +313,7 @@ const ManagerTeams = () => {
           </div>
         </div>
 
-        {/* Teams Grid - No View Stats button on cards */}
+        {/* Teams Grid */}
         <div className="teams-section">
           <div className="teams-grid">
             {teams.length > 0 ? teams.map(team => {
@@ -347,22 +340,22 @@ const ManagerTeams = () => {
                       <span className="stat-label">Players</span>
                     </div>
                     <div className="team-stat">
-                      <span className="stat-value">{team.matchesPlayed || 0}</span>
+                      <span className="stat-value">{team.totalMatches || 0}</span>
                       <span className="stat-label">Matches</span>
                     </div>
                     <div className="team-stat">
-                      <span className="stat-value">{team.matchesWon || 0}</span>
+                      <span className="stat-value">{team.wins || 0}</span>
                       <span className="stat-label">Wins</span>
                     </div>
                     <div className="team-stat">
                       <span className="stat-value">
-                        {team.matchesPlayed > 0 ? Math.round((team.matchesWon / team.matchesPlayed) * 100) : 0}%
+                        {team.totalMatches > 0 ? Math.round((team.wins / team.totalMatches) * 100) : 0}%
                       </span>
                       <span className="stat-label">Win Rate</span>
                     </div>
                   </div>
                   
-                  {/* Captain Info - No View Stats button here */}
+                  {/* Captain Info */}
                   <div className="team-captain-section">
                     <h4>Team Captain</h4>
                     {captainPlayer ? (

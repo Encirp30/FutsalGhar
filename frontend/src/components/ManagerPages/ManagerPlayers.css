@@ -1,4 +1,4 @@
-/* ManagerPlayers.css - Complete Fix for Column Alignment */
+/* ManagerPlayers.css - Professional Design */
 
 .manager-players-page {
   max-width: 1400px;
@@ -8,26 +8,11 @@
   min-height: calc(100vh - 200px);
 }
 
-.page-header {
-  margin-bottom: 30px;
-  padding: 20px 0;
-  text-align: left;
-}
-
-.page-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 8px;
-}
-
-.page-subtitle {
-  font-size: 14px;
-  color: #64748b;
-}
+/* REMOVED page-header styles - no header anymore */
 
 .stats-section {
   margin-bottom: 35px;
+  padding-top: 20px;
 }
 
 .stats-grid {
@@ -590,10 +575,6 @@
 @media (max-width: 768px) {
   .manager-players-page {
     padding: 0 16px;
-  }
-  
-  .page-title {
-    font-size: 24px;
   }
   
   .stat-icon {

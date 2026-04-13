@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api, setAuthToken } from '../../services/api';
 import './RegisterPage.css';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
+  // Get referral code from URL
+  const getReferralCodeFromUrl = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get('ref');
+  };
+
   // State for form data
   const [formData, setFormData] = useState({
     username: '',
@@ -13,6 +20,13 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: ''
   });
+
+  // OTP State
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
 
   // State for error messages
   const [errors, setErrors] = useState({
@@ -77,6 +91,13 @@ const RegisterPage = () => {
     if (errors.form) {
       setErrors(prev => ({ ...prev, form: '' }));
     }
+    
+    // Reset OTP state if email changes
+    if (name === 'email') {
+      setOtpSent(false);
+      setOtpCode('');
+      setOtpError('');
+    }
   };
 
   // Toggle password visibility
@@ -87,6 +108,54 @@ const RegisterPage = () => {
   // Toggle confirm password visibility
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  // Send OTP to email
+  const handleSendOTP = async () => {
+    // Validate email first
+    if (!formData.email.trim()) {
+      setErrors(prev => ({ ...prev, email: 'Email is required' }));
+      return;
+    }
+    if (!validateEmail(formData.email)) {
+      setErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+      return;
+    }
+
+    setIsSendingOtp(true);
+    setOtpError('');
+    
+    try {
+      await api.sendOTP(formData.email);
+      setOtpSent(true);
+      setErrors(prev => ({ ...prev, email: '' }));
+    } catch (error) {
+      setOtpError(error.message || 'Failed to send OTP. Please try again.');
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  // Verify OTP
+  const handleVerifyOTP = async () => {
+    if (!otpCode || otpCode.length !== 4) {
+      setOtpError('Please enter a valid 4-digit OTP');
+      return;
+    }
+
+    setIsVerifying(true);
+    setOtpError('');
+    
+    try {
+      await api.verifyOTP(formData.email, otpCode);
+      setOtpError('');
+      // OTP verified successfully, proceed with registration
+      await handleSubmit();
+    } catch (error) {
+      setOtpError(error.message || 'Invalid or expired OTP');
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   // Validate entire form
@@ -140,10 +209,8 @@ const RegisterPage = () => {
     return isValid;
   };
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+  // Handle form submission (after OTP verification)
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
@@ -151,12 +218,19 @@ const RegisterPage = () => {
     setIsSubmitting(true);
     
     try {
+      const referralCode = getReferralCodeFromUrl();
+      
       const userData = {
         username: formData.username,
         email: formData.email,
         password: formData.password,
         confirmPassword: formData.confirmPassword
       };
+      
+      // Add referral code if present
+      if (referralCode) {
+        userData.referralCode = referralCode;
+      }
       
       const response = await api.register(userData);
       
@@ -225,7 +299,7 @@ const RegisterPage = () => {
             </div>
           )}
           
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={(e) => e.preventDefault()} noValidate>
             <div className="input-group">
               <label className="input-label">Username</label>
               <input
@@ -244,19 +318,69 @@ const RegisterPage = () => {
 
             <div className="input-group">
               <label className="input-label">Email Address</label>
-              <input
-                type="email"
-                name="email"
-                placeholder="name@example.com"
-                className={`form-input ${errors.email ? 'input-error' : ''}`}
-                value={formData.email}
-                onChange={handleChange}
-                disabled={isSubmitting}
-              />
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="name@example.com"
+                  className={`form-input ${errors.email ? 'input-error' : ''}`}
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={isSubmitting || otpSent}
+                  style={{ flex: 1 }}
+                />
+                {!otpSent ? (
+                  <button
+                    type="button"
+                    className="send-otp-btn"
+                    onClick={handleSendOTP}
+                    disabled={isSendingOtp || isSubmitting}
+                  >
+                    {isSendingOtp ? 'Sending...' : 'Send OTP'}
+                  </button>
+                ) : (
+                  <span className="otp-sent-badge">✓ OTP Sent</span>
+                )}
+              </div>
               {errors.email && (
                 <div className="error-text">{errors.email}</div>
               )}
             </div>
+
+            {/* OTP Verification Section */}
+            {otpSent && (
+              <div className="input-group otp-section">
+                <label className="input-label">Enter OTP</label>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Enter 4-digit OTP"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.slice(0, 4))}
+                    className="form-input"
+                    maxLength="4"
+                    disabled={isVerifying || isSubmitting}
+                    style={{ textAlign: 'center', letterSpacing: '4px', fontSize: '18px' }}
+                  />
+                  <button
+                    type="button"
+                    className="verify-otp-btn"
+                    onClick={handleVerifyOTP}
+                    disabled={isVerifying || isSubmitting || otpCode.length !== 4}
+                  >
+                    {isVerifying ? 'Verifying...' : 'Verify'}
+                  </button>
+                </div>
+                {otpError && (
+                  <div className="error-text" style={{ color: '#dc2626', marginTop: '8px' }}>
+                    {otpError}
+                  </div>
+                )}
+                <div className="otp-hint">
+                  Enter the 4-digit code sent to your email. Valid for 5 minutes.
+                </div>
+              </div>
+            )}
 
             <div className="input-group">
               <label className="input-label">Password</label>
@@ -353,12 +477,18 @@ const RegisterPage = () => {
             <div className="divider"></div>
 
             <button 
-              type="submit" 
+              type="button"
               className="submit-btn"
-              disabled={isSubmitting}
+              onClick={handleSendOTP}
+              disabled={isSubmitting || !formData.email || !validateEmail(formData.email)}
+              style={{ marginBottom: '10px' }}
             >
-              {isSubmitting ? 'Creating Account...' : 'Create Account'}
+              {isSubmitting ? 'Creating Account...' : 'Send OTP'}
             </button>
+            
+            <div className="register-note">
+              By clicking "Send OTP", you agree to our Terms of Service and Privacy Policy.
+            </div>
           </form>
         </div>
       </div>

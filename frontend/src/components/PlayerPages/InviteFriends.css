@@ -7,6 +7,7 @@
   padding: 0 20px;
   min-height: calc(100vh - 200px);
   padding-top: 16px;
+  background: #f8fafc;
 }
 
 /* Content Layout */
@@ -39,10 +40,10 @@
 .friends-list-card,
 .tips-card {
   background: white;
-  border-radius: 12px;
-  padding: 25px;
-  border: 2px solid #e2e8f0;
-  transition: all 0.3s;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
 }
 
 .referral-card:hover,
@@ -52,13 +53,16 @@
 .stats-card:hover,
 .friends-list-card:hover,
 .tips-card:hover {
-  border-color: #3b82f6;
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
 h3 {
-  font-size: 20px;
+  font-size: 18px;
+  font-weight: 600;
   color: #1e293b;
-  margin-bottom: 15px;
+  margin: 0 0 16px 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -68,7 +72,7 @@ h3 {
 .referral-description {
   font-size: 14px;
   color: #64748b;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
   line-height: 1.5;
 }
 
@@ -81,17 +85,19 @@ h3 {
 .referral-link-input {
   flex: 1;
   padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   font-size: 14px;
   font-family: monospace;
   background: #f8fafc;
   color: #334155;
+  transition: all 0.2s;
 }
 
 .referral-link-input:focus {
   outline: none;
   border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .copy-btn {
@@ -99,20 +105,34 @@ h3 {
   background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .copy-btn:hover {
   background: #2563eb;
+  transform: translateY(-1px);
 }
 
 .copy-btn.copied {
   background: #10b981;
+}
+
+.referral-code-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+}
+
+.referral-code-hint strong {
+  color: #3b82f6;
+  font-family: monospace;
+  font-size: 14px;
 }
 
 /* Share Buttons */
@@ -129,16 +149,12 @@ h3 {
   gap: 10px;
   padding: 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
   color: white;
-}
-
-.share-icon {
-  font-size: 18px;
 }
 
 .share-btn.whatsapp {
@@ -147,6 +163,7 @@ h3 {
 
 .share-btn.whatsapp:hover {
   background: #128C7E;
+  transform: translateY(-1px);
 }
 
 .share-btn.facebook {
@@ -155,6 +172,7 @@ h3 {
 
 .share-btn.facebook:hover {
   background: #1664c0;
+  transform: translateY(-1px);
 }
 
 .share-btn.twitter {
@@ -163,6 +181,7 @@ h3 {
 
 .share-btn.twitter:hover {
   background: #0d8ae0;
+  transform: translateY(-1px);
 }
 
 .share-btn.email {
@@ -171,13 +190,14 @@ h3 {
 
 .share-btn.email:hover {
   background: #5a6268;
+  transform: translateY(-1px);
 }
 
 /* Email Invite Card */
 .email-description {
   font-size: 14px;
   color: #64748b;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
 .email-input-group {
@@ -188,15 +208,16 @@ h3 {
 .email-input {
   flex: 1;
   padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   font-size: 14px;
-  transition: border-color 0.3s;
+  transition: all 0.2s;
 }
 
 .email-input:focus {
   outline: none;
   border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .send-invite-btn {
@@ -204,15 +225,16 @@ h3 {
   background: #10b981;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
 }
 
 .send-invite-btn:hover {
   background: #059669;
+  transform: translateY(-1px);
 }
 
 /* Rewards Card */
@@ -228,11 +250,16 @@ h3 {
   gap: 12px;
   padding: 12px;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: 12px;
+  transition: all 0.2s;
 }
 
-.reward-icon {
-  font-size: 24px;
+.reward-item:hover {
+  background: #f1f5f9;
+}
+
+/* SVG Icon Styles for Rewards */
+.reward-icon-svg {
   width: 40px;
   height: 40px;
   display: flex;
@@ -240,22 +267,26 @@ h3 {
   justify-content: center;
   background: white;
   border-radius: 10px;
+  color: #3b82f6;
+  flex-shrink: 0;
 }
 
 .reward-info {
-  display: flex;
-  flex-direction: column;
+  flex: 1;
 }
 
 .reward-value {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1e293b;
+  display: block;
 }
 
 .reward-label {
   font-size: 11px;
   color: #64748b;
+  display: block;
+  margin-top: 2px;
 }
 
 /* Right Column */
@@ -277,7 +308,7 @@ h3 {
   text-align: center;
   padding: 15px;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .stat-number {
@@ -316,7 +347,18 @@ h3 {
   transition: width 0.5s ease;
 }
 
+.progress-reward-hint {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #10b981;
+  text-align: center;
+}
+
 /* Friends List */
+.friends-list-card h3 {
+  margin-bottom: 16px;
+}
+
 .friends-list {
   display: flex;
   flex-direction: column;
@@ -331,12 +373,13 @@ h3 {
   gap: 12px;
   padding: 12px;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  transition: all 0.3s;
+  border-radius: 12px;
+  transition: all 0.2s;
 }
 
 .friend-item:hover {
-  border-color: #3b82f6;
+  border-color: #cbd5e1;
+  background: #f8fafc;
 }
 
 .friend-avatar {
@@ -364,7 +407,8 @@ h3 {
 .friend-name {
   font-weight: 600;
   color: #1e293b;
-  margin-bottom: 4px;
+  font-size: 14px;
+  margin-bottom: 2px;
 }
 
 .friend-email {
@@ -395,12 +439,12 @@ h3 {
   padding: 6px 16px;
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
   color: #3b82f6;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   flex-shrink: 0;
 }
 
@@ -412,14 +456,15 @@ h3 {
 
 .pending-title {
   margin-top: 20px;
-  margin-bottom: 15px;
-  font-size: 18px;
+  margin-bottom: 16px !important;
+  font-size: 16px;
 }
 
 .empty-friends-message {
   text-align: center;
-  padding: 20px;
+  padding: 30px 20px;
   color: #94a3b8;
+  font-size: 14px;
 }
 
 /* Tips Card */
@@ -444,8 +489,8 @@ h3 {
 }
 
 .tips-list li::before {
-  
-  font-size: 16px;
+  content: "💡";
+  font-size: 14px;
 }
 
 /* Loading State */
@@ -481,7 +526,7 @@ h3 {
 /* Responsive */
 @media (max-width: 768px) {
   .invite-friends-page {
-    padding: 0 15px;
+    padding: 0 16px;
   }
   
   .referral-link-container {
@@ -550,7 +595,6 @@ h3 {
   }
   
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
   
@@ -562,10 +606,14 @@ h3 {
     padding: 10px;
   }
   
-  .reward-icon {
+  .reward-icon-svg {
     width: 35px;
     height: 35px;
-    font-size: 20px;
+  }
+  
+  .reward-icon-svg svg {
+    width: 20px;
+    height: 20px;
   }
   
   .reward-value {
@@ -599,5 +647,19 @@ h3 {
   .tips-list li {
     font-size: 13px;
     padding: 8px 0;
+  }
+  
+  .friend-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .friend-name {
+    font-size: 13px;
+  }
+  
+  .friend-email {
+    font-size: 11px;
   }
 }

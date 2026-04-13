@@ -131,6 +131,12 @@
   border: 1px solid #a7f3d0;
 }
 
+.form-message.error {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
 /* Input group */
 .input-group {
   margin-bottom: 20px;
@@ -341,6 +347,125 @@
   cursor: not-allowed;
 }
 
+/* ========== OTP STYLES (ADDED) ========== */
+
+/* Send OTP Button */
+.send-otp-btn {
+  padding: 14px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.send-otp-btn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.send-otp-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* OTP Sent Badge */
+.otp-sent-badge {
+  padding: 14px 20px;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.otp-sent-badge::before {
+  content: "✓";
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* OTP Section */
+.otp-section {
+  margin-top: 5px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Verify OTP Button */
+.verify-otp-btn {
+  padding: 14px 24px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.verify-otp-btn:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.verify-otp-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* OTP Hint Text */
+.otp-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 10px;
+  text-align: center;
+  padding: 6px;
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+/* Register Note */
+.register-note {
+  text-align: center;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 16px;
+  line-height: 1.4;
+}
+
+/* Responsive OTP Styles */
+@media (max-width: 480px) {
+  .send-otp-btn,
+  .verify-otp-btn,
+  .otp-sent-badge {
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+  
+  .otp-section {
+    padding: 12px;
+  }
+  
+  .otp-section input {
+    font-size: 16px;
+    letter-spacing: 3px;
+  }
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .register-container {
@@ -383,5 +508,17 @@
   
   .form-title {
     font-size: 1.6rem;
+  }
+  
+  .input-group {
+    margin-bottom: 15px;
+    min-height: 80px;
+  }
+  
+  .form-input,
+  .send-otp-btn,
+  .verify-otp-btn,
+  .otp-sent-badge {
+    padding: 12px 14px;
   }
 }

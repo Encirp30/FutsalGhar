@@ -3,28 +3,9 @@
 .tournament-create-page {
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 20px 20px 40px;
   background: #f8fafc;
   min-height: calc(100vh - 200px);
-}
-
-/* Page Header */
-.page-header {
-  margin-bottom: 30px;
-  padding: 20px 0;
-  text-align: left;
-}
-
-.page-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 8px;
-}
-
-.page-subtitle {
-  font-size: 14px;
-  color: #64748b;
 }
 
 /* Form Container */
@@ -220,11 +201,7 @@
 /* Responsive */
 @media (max-width: 768px) {
   .tournament-create-page {
-    padding: 0 16px;
-  }
-  
-  .page-title {
-    font-size: 24px;
+    padding: 16px;
   }
   
   .create-form {

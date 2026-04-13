@@ -9,8 +9,8 @@
   min-height: calc(100vh - 200px);
 }
 
-/* Page Header */
-.page-header {
+/* Page Header - REMOVED */
+/* .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -30,7 +30,7 @@
 .page-subtitle {
   font-size: 14px;
   color: #64748b;
-}
+} */
 
 .create-court-btn {
   background: #3b82f6;

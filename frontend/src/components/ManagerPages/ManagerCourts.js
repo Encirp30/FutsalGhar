@@ -18,7 +18,6 @@ const ManagerCourts = () => {
         return;
       }
       
-      // ✅ CHANGED: Use new endpoint that returns ALL courts (including closed)
       const courtsData = await apiFetch('/courts/manager/all');
       const managerCourts = (courtsData.data || []);
       setCourts(managerCourts);
@@ -81,7 +80,7 @@ const ManagerCourts = () => {
     try {
       await api.updateCourt(selectedCourt._id, selectedCourt);
       alert('Changes saved successfully!');
-      navigate('/manager-dashboard');
+      await fetchManagerCourts(); // Refresh the courts list
     } catch (error) {
       alert('Update failed: ' + error.message);
     }
@@ -95,9 +94,15 @@ const ManagerCourts = () => {
       setLoading(true);
       await api.deleteCourt(selectedCourt._id);
       alert('Court deleted successfully.');
-      window.location.reload();
+      await fetchManagerCourts();
+      if (courts.length > 1) {
+        setSelectedCourt(courts[0]);
+      } else {
+        setSelectedCourt(null);
+      }
     } catch (error) {
       alert('Delete failed: ' + error.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -112,16 +117,6 @@ const ManagerCourts = () => {
   return (
     <Layout activePage="managerCourts">
       <div className="manager-courts-page">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Court Management</h1>
-            <p className="page-subtitle">Manage availability and details</p>
-          </div>
-          <button className="create-court-btn" onClick={handleCreateCourt}>
-            + Create New Court
-          </button>
-        </div>
-
         <div className="court-selector">
           <div className="selector-group">
             <span className="selector-label">Select Court</span>
@@ -142,6 +137,10 @@ const ManagerCourts = () => {
               {selectedCourt.status === 'open' ? 'Open for Booking' : 'Closed'}
             </div>
           )}
+          
+          <button className="create-court-btn" onClick={handleCreateCourt}>
+            + Create New Court
+          </button>
         </div>
 
         {selectedCourt ? (

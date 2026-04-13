@@ -356,11 +356,6 @@ const Tournaments = () => {
   return (
     <Layout activePage="tournaments">
       <div className="tournaments-page">
-        <div className="page-header">
-          <h1 className="page-title">Tournaments</h1>
-          <p className="page-subtitle">Discover and join competitive futsal tournaments</p>
-        </div>
-
         <div className="tournaments-action-bar">
           <div className="filter-tabs">
             <button className={`filter-tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>

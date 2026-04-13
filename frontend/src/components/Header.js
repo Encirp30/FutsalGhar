@@ -259,10 +259,12 @@ const Header = ({ activePage }) => {
     if (userRole === 'admin') {
       return [
         { key: 'admin', label: 'Admin Panel' },
-        { key: 'manager', label: 'Manager Dashboard' },
         { key: 'managerCourts', label: 'Courts' },
         { key: 'managerTeams', label: 'Teams' },
         { key: 'managerPlayers', label: 'Players' },
+        { key: 'tournaments', label: 'Tournaments' },
+        { key: 'matches', label: 'Matches' },
+        { key: 'managerBookings', label: 'Bookings' },
         { key: 'managerProfile', label: 'Profile' }
       ];
     }
@@ -299,7 +301,7 @@ const Header = ({ activePage }) => {
       <div style={styles.headerLeft}>
         <h1 
           style={styles.logo} 
-          onClick={() => navigate(userRole === 'manager' ? '/manager-dashboard' : '/dashboard')}
+          onClick={() => navigate(userRole === 'manager' ? '/manager-dashboard' : userRole === 'admin' ? '/admin-panel' : '/dashboard')}
           onMouseEnter={(e) => e.target.style.color = '#2563eb'}
           onMouseLeave={(e) => e.target.style.color = '#3b82f6'}
         >

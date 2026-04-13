@@ -2,13 +2,15 @@ const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const crypto = require('crypto');
 const Notification = require('../models/Notification');
+const { storeOTP, verifyOTP } = require('../utils/otp');
+const { sendEmail } = require('../utils/email');
 
 // Register user
 exports.register = async (req, res) => {
   try {
     console.log('Registration request body:', req.body);
     
-    const { username, email, password, confirmPassword, role } = req.body;
+    const { username, email, password, confirmPassword, role, referralCode } = req.body;
 
     if (!username || !email || !password || !confirmPassword) {
       return res.status(400).json({ 
@@ -48,6 +50,33 @@ exports.register = async (req, res) => {
 
     await user.save();
     console.log('User created successfully:', user._id);
+
+    // Handle referral code
+    if (referralCode) {
+      try {
+        const Referral = require('../models/Referral');
+        const referral = await Referral.findOne({ 
+          referralCode: referralCode,
+          status: 'pending'
+        });
+        
+        if (referral) {
+          referral.referredUser = user._id;
+          referral.status = 'joined';
+          referral.joinedAt = Date.now();
+          await referral.save();
+          
+          // Add reward to referrer's wallet
+          const referrer = await User.findById(referral.referrer);
+          if (referrer) {
+            referrer.walletBalance = (referrer.walletBalance || 0) + 500;
+            await referrer.save();
+          }
+        }
+      } catch (refError) {
+        console.log('Referral handling error:', refError.message);
+      }
+    }
 
     // Notify all admins when a new manager registers
     if (userRole === 'manager') {
@@ -376,5 +405,69 @@ exports.deleteAccount = async (req, res) => {
       success: false,
       message: error.message
     });
+  }
+};
+
+// ========== OTP FUNCTIONS ==========
+
+// Send OTP to email for verification
+exports.sendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+    
+    // Check if email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'Email already registered' });
+    }
+    
+    const otp = storeOTP(email);
+    
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <h2 style="color: #3b82f6;">FutsalGhar - Email Verification</h2>
+        <p>Your OTP for registration is:</p>
+        <div style="font-size: 32px; font-weight: bold; color: #1e293b; background: #f1f5f9; padding: 15px; text-align: center; letter-spacing: 5px; border-radius: 8px;">
+          ${otp}
+        </div>
+        <p>This OTP is valid for 5 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+        <hr style="margin: 20px 0; border-color: #e2e8f0;">
+        <p style="font-size: 12px; color: #64748b;">FutsalGhar - Your Futsal Platform</p>
+      </div>
+    `;
+    
+    await sendEmail(email, 'FutsalGhar - Email Verification OTP', emailHtml);
+    
+    res.json({ success: true, message: 'OTP sent to your email' });
+  } catch (error) {
+    console.error('Send OTP error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Verify OTP
+exports.verifyOTPCode = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, message: 'Email and OTP are required' });
+    }
+    
+    const isValid = verifyOTP(email, otp);
+    
+    if (!isValid) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+    }
+    
+    res.json({ success: true, message: 'OTP verified successfully' });
+  } catch (error) {
+    console.error('Verify OTP error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

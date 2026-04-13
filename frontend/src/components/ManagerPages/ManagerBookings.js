@@ -119,13 +119,6 @@ const ManagerBookings = () => {
   return (
     <Layout activePage="managerBookings">
       <div className="manager-bookings-page">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Bookings Management</h1>
-            <p className="page-subtitle">View and manage all bookings across your courts</p>
-          </div>
-        </div>
-
         {/* Stats Section */}
         <div className="stats-section">
           <div className="stats-grid">

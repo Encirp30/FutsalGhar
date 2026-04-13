@@ -3,113 +3,91 @@
 .manage-teams-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 30px 20px;
+  padding: 24px 20px;
   min-height: calc(100vh - 200px);
   background: #f8fafc;
 }
 
-.manage-teams-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.manage-teams-header h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 8px;
-}
-
-.manage-teams-header p {
-  font-size: 14px;
-  color: #64748b;
-}
-
-.error-message {
-  background: #fee2e2;
-  color: #dc2626;
-  padding: 12px 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  text-align: center;
-  border-left: 4px solid #dc2626;
-}
-
-.retry-btn {
-  display: block;
-  margin: 20px auto 0;
-  padding: 10px 24px;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.retry-btn:hover {
-  background: #2563eb;
-}
-
+/* Teams Grid */
 .teams-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 24px;
 }
 
+/* Team Card */
 .team-card {
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   border: 1px solid #e2e8f0;
   padding: 24px;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.12);
   border-color: #cbd5e1;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
+/* Team Card Header */
 .team-card-header {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   margin-bottom: 20px;
 }
 
-.team-icon {
-  width: 52px;
-  height: 52px;
-  background: #3b82f6;
-  border-radius: 14px;
+.team-avatar {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  font-weight: 700;
+  font-size: 24px;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
 }
 
-.team-card-header h3 {
+.team-info {
+  flex: 1;
+}
+
+.team-name {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1e293b;
-  margin: 0;
+  margin: 0 0 6px 0;
 }
 
+.team-level {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #eff6ff;
+  color: #3b82f6;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Team Stats */
 .team-stats {
   display: flex;
-  gap: 20px;
-  padding: 14px 0;
-  border-top: 1px solid #f1f5f9;
-  border-bottom: 1px solid #f1f5f9;
+  align-items: center;
+  justify-content: space-around;
+  padding: 16px 0;
   margin-bottom: 20px;
+  background: #f8fafc;
+  border-radius: 14px;
 }
 
-.stat {
-  flex: 1;
+.stat-item {
   text-align: center;
+  flex: 1;
 }
 
 .stat-value {
@@ -120,60 +98,140 @@
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.manage-btn {
+.stat-divider {
+  width: 1px;
+  height: 30px;
+  background: #e2e8f0;
+}
+
+/* Manage Button */
+.manage-team-btn {
   width: 100%;
-  padding: 10px 16px;
-  background: #3b82f6;
-  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #f1f5f9;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
+  color: #3b82f6;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.manage-btn:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
+.manage-team-btn svg {
+  transition: transform 0.2s ease;
 }
 
+.manage-team-btn:hover {
+  background: #3b82f6;
+  color: white;
+}
+
+.manage-team-btn:hover svg {
+  transform: scale(1.05);
+}
+
+/* Empty State */
 .empty-state {
   text-align: center;
   padding: 60px 40px;
   background: white;
-  border-radius: 20px;
+  border-radius: 24px;
   border: 1px solid #e2e8f0;
+  max-width: 500px;
+  margin: 40px auto;
 }
 
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  color: #94a3b8;
+.empty-illustration {
+  margin-bottom: 24px;
 }
 
 .empty-state h3 {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: #1e293b;
-  margin-bottom: 8px;
+  margin: 0 0 12px 0;
 }
 
 .empty-state p {
   color: #64748b;
   font-size: 14px;
-  margin-bottom: 24px;
+  line-height: 1.5;
+  margin: 0 0 8px 0;
 }
 
-.create-btn {
+.empty-subtext {
+  color: #94a3b8;
+  font-size: 13px;
+  margin-bottom: 28px !important;
+}
+
+.create-team-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: #3b82f6;
   color: white;
   border: none;
-  padding: 10px 28px;
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-team-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Error State */
+.error-state {
+  text-align: center;
+  padding: 60px 40px;
+  background: white;
+  border-radius: 24px;
+  border: 1px solid #fee2e2;
+  max-width: 450px;
+  margin: 40px auto;
+}
+
+.error-icon {
+  margin-bottom: 20px;
+}
+
+.error-state h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #dc2626;
+  margin: 0 0 8px 0;
+}
+
+.error-state p {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.retry-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 10px 24px;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
@@ -181,26 +239,32 @@
   transition: all 0.2s;
 }
 
-.create-btn:hover {
-  background: #2563eb;
+.retry-btn:hover {
+  background: #dc2626;
 }
 
-.loading-container {
+/* Loading State */
+.loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  padding: 80px 20px;
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 3px solid #e2e8f0;
   border-top: 3px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.loading-state p {
+  color: #64748b;
+  font-size: 14px;
 }
 
 @keyframes spin {
@@ -208,37 +272,74 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .manage-teams-container {
-    padding: 20px 16px;
-  }
-  
-  .manage-teams-header h1 {
-    font-size: 24px;
-  }
-  
-  .manage-teams-header p {
-    font-size: 13px;
+    padding: 16px;
   }
   
   .teams-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
   
   .team-card {
     padding: 20px;
   }
   
-  .team-icon {
-    width: 44px;
-    height: 44px;
+  .team-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
   }
   
-  .team-card-header h3 {
+  .team-name {
     font-size: 16px;
   }
   
   .stat-value {
+    font-size: 18px;
+  }
+  
+  .empty-state {
+    padding: 40px 24px;
+    margin: 20px;
+  }
+  
+  .empty-state h3 {
     font-size: 20px;
+  }
+  
+  .create-team-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .team-stats {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .stat-divider {
+    display: none;
+  }
+  
+  .stat-item {
+    width: 100%;
+  }
+  
+  .team-card-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .empty-illustration svg {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .empty-state h3 {
+    font-size: 18px;
   }
 }

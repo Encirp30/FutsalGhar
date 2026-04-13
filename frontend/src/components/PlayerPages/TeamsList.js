@@ -162,16 +162,6 @@ const TeamsList = () => {
   return (
     <Layout activePage="teams">
       <div className="teams-list-page">
-        <div className="teams-header-section">
-          <div>
-            <h1 className="teams-main-title">Teams</h1>
-            <p className="teams-subtitle">Discover and join teams to play together</p>
-          </div>
-          <button className="create-team-btn-header" onClick={() => navigate('/create-team')}>
-            + Create New Team
-          </button>
-        </div>
-
         <div className="teams-filter-bar">
           <div className="filter-tabs">
             <button className={`filter-chip ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
@@ -201,6 +191,10 @@ const TeamsList = () => {
             />
             <span className="search-icon">🔍</span>
           </div>
+          
+          <button className="create-team-btn-header" onClick={() => navigate('/create-team')}>
+            + Create New Team
+          </button>
         </div>
 
         <div className="teams-grid">
@@ -233,12 +227,12 @@ const TeamsList = () => {
                     </div>
                     <div className="stat-divider"></div>
                     <div className="stat-item">
-                      <span className="stat-number">{team.matchesPlayed || team.totalMatches || 0}</span>
+                      <span className="stat-number">{team.totalMatches || 0}</span>
                       <span className="stat-label">Matches</span>
                     </div>
                     <div className="stat-divider"></div>
                     <div className="stat-item">
-                      <span className="stat-number">{team.matchesWon || team.wins || 0}</span>
+                      <span className="stat-number">{team.wins || 0}</span>
                       <span className="stat-label">Wins</span>
                     </div>
                   </div>

@@ -17,4 +17,7 @@ router.put('/:id/result', auth, authorize('manager', 'admin'), matchController.u
 // Delete match (for managers/admins)
 router.delete('/:id', auth, authorize('manager', 'admin'), matchController.deleteMatch);
 
+// Scoreboard Webhook Integration
+router.post('/webhook/:id', matchController.webhookUpdateMatchResult);
+
 module.exports = router;

@@ -27,6 +27,7 @@ exports.getReferralLink = async (req, res) => {
       referralLink
     });
   } catch (error) {
+    console.error('Get referral link error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -47,33 +48,42 @@ exports.sendInvite = async (req, res) => {
 
     const referralLink = `${process.env.FRONTEND_URL}/register?ref=${user.referralCode}`;
 
+    // Check if a pending referral already exists for this email
+    const existingReferral = await Referral.findOne({
+      referrer: req.userId,
+      referredEmail: email,
+      status: 'pending'
+    });
+
+    if (!existingReferral) {
+      // Only create new referral if one doesn't exist
+      const referral = new Referral({
+        referrer: req.userId,
+        referredEmail: email,
+        referralCode: user.referralCode,
+        status: 'pending',
+        sharedVia: 'email',
+        expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+      });
+      await referral.save();
+    }
+
     const emailHtml = `
-      <h2>Join FutsalPro!</h2>
-      <p>${user.fullName} has invited you to join FutsalPro - your ultimate futsal platform.</p>
+      <h2>Join FutsalGhar!</h2>
+      <p>${user.fullName || user.username} has invited you to join FutsalGhar - your ultimate futsal platform.</p>
       ${message && `<p>"${message}"</p>`}
       <p><a href="${referralLink}">Click here to register</a></p>
       <p>Using this link, you'll get special benefits!</p>
     `;
 
-    await sendEmail(email, 'Join FutsalPro - Exclusive Invite from ' + user.fullName, emailHtml);
-
-    // Create referral record
-    const referral = new Referral({
-      referrer: req.userId,
-      referredEmail: email,
-      referralCode: user.referralCode,
-      status: 'pending',
-      sharedVia: 'email',
-      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
-    });
-
-    await referral.save();
+    await sendEmail(email, 'Join FutsalGhar - Exclusive Invite from ' + (user.fullName || user.username), emailHtml);
 
     res.json({
       success: true,
       message: 'Invite sent successfully'
     });
   } catch (error) {
+    console.error('Send invite error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -94,22 +104,32 @@ exports.shareReferralLink = async (req, res) => {
 
     const referralLink = `${process.env.FRONTEND_URL}/register?ref=${user.referralCode}`;
 
-    // Create referral record for tracking
-    const referral = new Referral({
+    // Check if a pending referral already exists for this share action (within last 5 minutes)
+    const existingReferral = await Referral.findOne({
       referrer: req.userId,
-      referralCode: user.referralCode,
-      status: 'pending',
       sharedVia: platform || 'link_copy',
-      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      status: 'pending',
+      createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) } // within last 5 minutes
     });
 
-    await referral.save();
+    if (!existingReferral) {
+      // Only create new referral if one doesn't exist recently
+      const referral = new Referral({
+        referrer: req.userId,
+        referralCode: user.referralCode,
+        status: 'pending',
+        sharedVia: platform || 'link_copy',
+        expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      });
+      await referral.save();
+    }
 
     const shareUrls = {
-      whatsapp: `https://api.whatsapp.com/send?text=Join%20FutsalPro%3A%20${encodeURIComponent(referralLink)}`,
+      whatsapp: `https://api.whatsapp.com/send?text=Join%20FutsalGhar%3A%20${encodeURIComponent(referralLink)}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`,
-      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=Join%20FutsalPro%20with%20me`,
-      email: `mailto:?subject=Join%20FutsalPro&body=${encodeURIComponent(referralLink)}`
+      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=Join%20FutsalGhar%20with%20me`,
+      email: `mailto:?subject=Join%20FutsalGhar&body=${encodeURIComponent(referralLink)}`,
+      link_copy: referralLink
     };
 
     res.json({
@@ -118,6 +138,7 @@ exports.shareReferralLink = async (req, res) => {
       shareUrl: shareUrls[platform] || referralLink
     });
   } catch (error) {
+    console.error('Share referral error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -147,6 +168,7 @@ exports.getReferralStats = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Get referral stats error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -179,6 +201,7 @@ exports.getReferralHistory = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Get referral history error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -221,6 +244,7 @@ exports.registerWithReferral = async (req, res) => {
       message: 'Valid referral code'
     });
   } catch (error) {
+    console.error('Register with referral error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -246,15 +270,15 @@ exports.updateReferralStatus = async (req, res) => {
     if (referral) {
       // Add reward to referrer's wallet
       const referrer = await User.findById(referral.referrer);
-      referrer.walletBalance += 500; // 500 reward points
-      await referrer.save();
+      if (referrer) {
+        referrer.walletBalance = (referrer.walletBalance || 0) + 500; // 500 reward points
+        await referrer.save();
+      }
 
-      // ✅ ADDED: Notification for referral joined and reward earned
+      // Notification for referral joined and reward earned
       try {
-        // Get the new user's info
         const newUser = await User.findById(newUserId);
         
-        // Notify referrer that someone joined using their link
         await Notification.create({
           user: referral.referrer,
           type: 'referral_joined',
@@ -266,11 +290,10 @@ exports.updateReferralStatus = async (req, res) => {
           }
         });
 
-        // Notify referrer about reward earned
         await Notification.create({
           user: referral.referrer,
           type: 'reward_earned',
-          title: 'Reward Earned! 🎁',
+          title: 'Reward Earned!',
           message: `You earned 500 points for referring ${newUser?.fullName || newUser?.username || 'a friend'}!`,
           relatedEntity: {
             entityType: 'user',
@@ -288,6 +311,7 @@ exports.updateReferralStatus = async (req, res) => {
       referral
     });
   } catch (error) {
+    console.error('Update referral status error:', error);
     res.status(500).json({
       success: false,
       message: error.message

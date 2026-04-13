@@ -10,14 +10,18 @@ const InviteFriends = () => {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [referralLink, setReferralLink] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [referralStats, setReferralStats] = useState({
     totalInvites: 0,
     joinedFriends: 0,
     pendingInvites: 0,
-    rewardsEarned: 0
+    rewardsEarned: 0,
+    nextMilestone: 1,
+    nextReward: 500
   });
   
   const [invitedFriends, setInvitedFriends] = useState([]);
+  const [pendingInvites, setPendingInvites] = useState([]);
 
   useEffect(() => {
     const fetchReferralData = async () => {
@@ -33,44 +37,61 @@ const InviteFriends = () => {
         const userData = userResponse.user || userResponse;
         setUser(userData);
         
-        // Generate referral link
-        const baseUrl = window.location.origin;
-        const referralCode = userData.referralCode || userData._id;
-        const link = `${baseUrl}/register?ref=${referralCode}`;
-        setReferralLink(link);
+        // Get referral link from backend
+        try {
+          const linkResponse = await api.getReferralLink();
+          if (linkResponse && linkResponse.referralLink) {
+            setReferralLink(linkResponse.referralLink);
+            setReferralCode(linkResponse.referralCode);
+          }
+        } catch (linkError) {
+          console.log('Error fetching referral link:', linkError);
+          const fallbackLink = `${window.location.origin}/register?ref=${userData._id}`;
+          setReferralLink(fallbackLink);
+        }
         
-        // Fetch referral stats from API
+        // Fetch referral stats
         try {
           const statsData = await api.getReferralStats();
-          if (statsData && statsData.data) {
-            const total = statsData.data.totalReferrals || 0;
-            const joined = statsData.data.joinedCount || 0;
+          console.log('Stats API response:', statsData);
+          if (statsData && statsData.stats) {
+            const joinedCount = statsData.stats.joinedFriends || 0;
             setReferralStats({
-              totalInvites: total,
-              joinedFriends: joined,
-              pendingInvites: total - joined,
-              rewardsEarned: statsData.data.totalRewards || 0
+              totalInvites: statsData.stats.totalInvites || 0,
+              joinedFriends: joinedCount,
+              pendingInvites: statsData.stats.pendingInvites || 0,
+              rewardsEarned: statsData.stats.rewardsEarned || 0,
+              nextMilestone: joinedCount + 1,
+              nextReward: 500
+            });
+          } else if (statsData && statsData.data) {
+            const joinedCount = statsData.data.joinedCount || 0;
+            setReferralStats({
+              totalInvites: statsData.data.totalReferrals || 0,
+              joinedFriends: joinedCount,
+              pendingInvites: statsData.data.pendingCount || 0,
+              rewardsEarned: statsData.data.totalRewards || 0,
+              nextMilestone: joinedCount + 1,
+              nextReward: 500
             });
           }
         } catch (statsError) {
-          console.log('Referral stats not available yet:', statsError.message);
+          console.log('Referral stats error:', statsError.message);
         }
         
-        // Fetch referral history - try multiple possible endpoints
-        let historyData = [];
+        // Fetch referral history
         try {
-          // Try to get from getUserTeams or similar endpoint
-          const teamsData = await api.getUserTeams();
-          if (teamsData && teamsData.data) {
-            // If we have team data, we can use it
-            historyData = [];
+          const historyData = await api.getReferralHistory(1, 50);
+          console.log('History API response:', historyData);
+          if (historyData && historyData.referrals) {
+            const joined = historyData.referrals.filter(r => r.status === 'joined');
+            const pending = historyData.referrals.filter(r => r.status === 'pending');
+            setInvitedFriends(joined);
+            setPendingInvites(pending);
           }
         } catch (historyError) {
-          console.log('Referral history not available yet:', historyError.message);
+          console.log('Referral history error:', historyError.message);
         }
-        
-        // If no real data, show empty array
-        setInvitedFriends(historyData);
         
         setLoading(false);
       } catch (error) {
@@ -87,13 +108,19 @@ const InviteFriends = () => {
       await navigator.clipboard.writeText(referralLink);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
+      
+      try {
+        await api.shareReferralLink('link_copy');
+      } catch (e) {
+        console.log('Error tracking copy:', e);
+      }
     } catch (err) {
       alert('Failed to copy link. Please copy manually.');
     }
   };
 
-  const shareOnSocial = (platform) => {
-    const text = `Join me on FutsalPro! Use my referral link to get started: ${referralLink}`;
+  const shareOnSocial = async (platform) => {
+    const text = `Join me on FutsalGhar! Use my referral link to get started: ${referralLink}`;
     const encodedText = encodeURIComponent(text);
     const encodedUrl = encodeURIComponent(referralLink);
     
@@ -109,18 +136,59 @@ const InviteFriends = () => {
         shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
         break;
       case 'email':
-        shareUrl = `mailto:?subject=Join me on FutsalPro&body=${encodedText}`;
+        shareUrl = `mailto:?subject=Join me on FutsalGhar&body=${encodedText}`;
         break;
       default:
         return;
     }
+    
+    try {
+      await api.shareReferralLink(platform);
+    } catch (e) {
+      console.log('Error tracking share:', e);
+    }
+    
     window.open(shareUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const sendInvite = (email) => {
-    const subject = encodeURIComponent('Join me on FutsalPro!');
-    const body = encodeURIComponent(`Hey! I'm inviting you to join FutsalPro - the best platform for booking futsal courts and finding teams. Use my referral link to sign up: ${referralLink}`);
-    window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
+  const sendInvite = async (email) => {
+    if (!email) {
+      alert('Please enter an email address');
+      return;
+    }
+    
+    try {
+      await api.sendReferralInvite(email, '');
+      alert(`Invite sent to ${email}!`);
+      
+      const emailInput = document.getElementById('friendEmail');
+      if (emailInput) emailInput.value = '';
+      
+      // Refresh stats after sending invite
+      const statsData = await api.getReferralStats();
+      if (statsData && statsData.stats) {
+        const joinedCount = statsData.stats.joinedFriends || 0;
+        setReferralStats(prev => ({
+          ...prev,
+          pendingInvites: statsData.stats.pendingInvites || 0,
+          totalInvites: statsData.stats.totalInvites || 0,
+          joinedFriends: joinedCount,
+          nextMilestone: joinedCount + 1,
+          nextReward: 500
+        }));
+      }
+      
+      // Refresh history
+      const historyData = await api.getReferralHistory(1, 50);
+      if (historyData && historyData.referrals) {
+        const joined = historyData.referrals.filter(r => r.status === 'joined');
+        const pending = historyData.referrals.filter(r => r.status === 'pending');
+        setInvitedFriends(joined);
+        setPendingInvites(pending);
+      }
+    } catch (error) {
+      alert('Failed to send invite: ' + error.message);
+    }
   };
 
   if (loading) {
@@ -158,6 +226,9 @@ const InviteFriends = () => {
                   {copied ? '✓ Copied!' : 'Copy'}
                 </button>
               </div>
+              {referralCode && (
+                <p className="referral-code-hint">Your code: <strong>{referralCode}</strong></p>
+              )}
             </div>
 
             {/* Quick Share Section */}
@@ -165,19 +236,15 @@ const InviteFriends = () => {
               <h3>Quick Share</h3>
               <div className="share-buttons">
                 <button className="share-btn whatsapp" onClick={() => shareOnSocial('whatsapp')}>
-                  <span className="share-icon"></span>
                   WhatsApp
                 </button>
                 <button className="share-btn facebook" onClick={() => shareOnSocial('facebook')}>
-                  <span className="share-icon"></span>
                   Facebook
                 </button>
                 <button className="share-btn twitter" onClick={() => shareOnSocial('twitter')}>
-                  <span className="share-icon"></span>
                   Twitter
                 </button>
                 <button className="share-btn email" onClick={() => shareOnSocial('email')}>
-                  <span className="share-icon"></span>
                   Email
                 </button>
               </div>
@@ -200,12 +267,7 @@ const InviteFriends = () => {
                   className="send-invite-btn"
                   onClick={() => {
                     const email = document.getElementById('friendEmail').value;
-                    if (email) {
-                      sendInvite(email);
-                      document.getElementById('friendEmail').value = '';
-                    } else {
-                      alert('Please enter an email address');
-                    }
+                    sendInvite(email);
                   }}
                 >
                   Send Invite
@@ -213,36 +275,56 @@ const InviteFriends = () => {
               </div>
             </div>
 
-            {/* Referral Rewards - Updated with Rs. currency */}
+            {/* Referral Rewards - Updated to match backend (500 per friend) */}
             <div className="rewards-card">
               <h3>Referral Rewards</h3>
               <div className="rewards-grid">
                 <div className="reward-item">
-                  <div className="reward-icon">👥</div>
+                  <div className="reward-icon-svg">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="#3b82f6" strokeWidth="1.5" fill="none"/>
+                      <path d="M5 20V19C5 15.13 8.13 12 12 12C15.87 12 19 15.13 19 19V20" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                    </svg>
+                  </div>
                   <div className="reward-info">
                     <span className="reward-value">1 friend</span>
-                    <span className="reward-label">Rs. 50 wallet credit</span>
+                    <span className="reward-label">Rs. 500 wallet credit</span>
                   </div>
                 </div>
                 <div className="reward-item">
-                  <div className="reward-icon">👥👥</div>
+                  <div className="reward-icon-svg">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="#3b82f6" strokeWidth="1.5" fill="none"/>
+                      <path d="M5 20V19C5 15.13 8.13 12 12 12C15.87 12 19 15.13 19 19V20" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                      <path d="M17 2L19 4L23 0" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div className="reward-info">
+                    <span className="reward-value">2 friends</span>
+                    <span className="reward-label">Rs. 500 wallet credit</span>
+                  </div>
+                </div>
+                <div className="reward-item">
+                  <div className="reward-icon-svg">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2L15 8L22 9L17 14L18 21L12 18L6 21L7 14L2 9L9 8L12 2Z" stroke="#f59e0b" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+                    </svg>
+                  </div>
                   <div className="reward-info">
                     <span className="reward-value">3 friends</span>
-                    <span className="reward-label">Rs. 200 wallet credit</span>
+                    <span className="reward-label">Rs. 500 wallet credit</span>
                   </div>
                 </div>
                 <div className="reward-item">
-                  <div className="reward-icon">🏆</div>
-                  <div className="reward-info">
-                    <span className="reward-value">5 friends</span>
-                    <span className="reward-label">Free booking voucher</span>
+                  <div className="reward-icon-svg">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2L15 8L22 9L17 14L18 21L12 18L6 21L7 14L2 9L9 8L12 2Z" stroke="#8b5cf6" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+                      <circle cx="12" cy="12" r="3" fill="#8b5cf6"/>
+                    </svg>
                   </div>
-                </div>
-                <div className="reward-item">
-                  <div className="reward-icon">⭐</div>
                   <div className="reward-info">
-                    <span className="reward-value">10 friends</span>
-                    <span className="reward-label">"Super Connector" badge</span>
+                    <span className="reward-value">5+ friends</span>
+                    <span className="reward-label">Rs. 500+ wallet credit</span>
                   </div>
                 </div>
               </div>
@@ -251,7 +333,7 @@ const InviteFriends = () => {
 
           {/* Right Column - Stats & Friends List */}
           <div className="invite-right">
-            {/* Stats Card - Updated with Rs. currency */}
+            {/* Stats Card */}
             <div className="stats-card">
               <h3>Your Referral Stats</h3>
               <div className="stats-grid">
@@ -273,31 +355,34 @@ const InviteFriends = () => {
                 </div>
               </div>
               <div className="progress-bar-container">
-                <div className="progress-label">Next reward: {referralStats.joinedFriends}/3 friends</div>
+                <div className="progress-label">Next reward: Invite {referralStats.nextMilestone} friend to earn Rs. {referralStats.nextReward}</div>
                 <div className="progress-bar">
                   <div 
                     className="progress-fill" 
-                    style={{ width: `${Math.min((referralStats.joinedFriends / 3) * 100, 100)}%` }}
+                    style={{ width: `${Math.min((referralStats.joinedFriends / Math.max(1, referralStats.nextMilestone)) * 100, 100)}%` }}
                   ></div>
+                </div>
+                <div className="progress-reward-hint">
+                  Invite {Math.max(0, referralStats.nextMilestone - referralStats.joinedFriends)} more friend to earn Rs. {referralStats.nextReward}!
                 </div>
               </div>
             </div>
 
-            {/* Invited Friends List - Shows real data when available */}
+            {/* Invited Friends List */}
             <div className="friends-list-card">
-              <h3>Friends Who Joined</h3>
+              <h3>Friends Who Joined ({invitedFriends.length})</h3>
               <div className="friends-list">
-                {invitedFriends.filter(f => f.status === 'joined' || f.joinedDate).length > 0 ? (
-                  invitedFriends.filter(f => f.status === 'joined' || f.joinedDate).map((friend, index) => (
-                    <div key={friend.id || index} className="friend-item joined">
+                {invitedFriends.length > 0 ? (
+                  invitedFriends.map((friend, index) => (
+                    <div key={friend._id || index} className="friend-item joined">
                       <div className="friend-avatar">
-                        {(friend.name || friend.username || 'U').charAt(0).toUpperCase()}
+                        {(friend.referredUser?.username || friend.referredEmail || 'U').charAt(0).toUpperCase()}
                       </div>
                       <div className="friend-info">
-                        <div className="friend-name">{friend.name || friend.username || 'User'}</div>
-                        <div className="friend-email">{friend.email || 'No email'}</div>
-                        {friend.joinedDate && (
-                          <div className="friend-date">Joined: {new Date(friend.joinedDate).toLocaleDateString()}</div>
+                        <div className="friend-name">{friend.referredUser?.fullName || friend.referredUser?.username || 'User'}</div>
+                        <div className="friend-email">{friend.referredEmail || friend.referredUser?.email || 'No email'}</div>
+                        {friend.joinedAt && (
+                          <div className="friend-date">Joined: {new Date(friend.joinedAt).toLocaleDateString()}</div>
                         )}
                       </div>
                       <div className="friend-badge joined-badge">✓ Joined</div>
@@ -305,28 +390,27 @@ const InviteFriends = () => {
                   ))
                 ) : (
                   <div className="empty-friends-message">
-                    <p style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-                      No friends have joined yet. Share your referral link!
-                    </p>
+                    <p>No friends have joined yet. Share your referral link!</p>
                   </div>
                 )}
               </div>
               
-              <h3 className="pending-title">Pending Invites</h3>
+              <h3 className="pending-title">Pending Invites ({pendingInvites.length})</h3>
               <div className="friends-list">
-                {invitedFriends.filter(f => f.status === 'pending' && !f.joinedDate).length > 0 ? (
-                  invitedFriends.filter(f => f.status === 'pending' && !f.joinedDate).map((friend, index) => (
-                    <div key={friend.id || index} className="friend-item pending">
+                {pendingInvites.length > 0 ? (
+                  pendingInvites.map((invite, index) => (
+                    <div key={invite._id || index} className="friend-item pending">
                       <div className="friend-avatar pending-avatar">
-                        {(friend.name || friend.email || '?').charAt(0).toUpperCase()}
+                        {(invite.referredEmail || '?').charAt(0).toUpperCase()}
                       </div>
                       <div className="friend-info">
-                        <div className="friend-name">{friend.name || 'Invited User'}</div>
-                        <div className="friend-email">{friend.email || 'No email'}</div>
+                        <div className="friend-name">Invited via {invite.sharedVia || 'link'}</div>
+                        <div className="friend-email">{invite.referredEmail || 'Email sent'}</div>
+                        <div className="friend-date">Sent: {new Date(invite.createdAt).toLocaleDateString()}</div>
                       </div>
                       <button 
                         className="remind-btn"
-                        onClick={() => sendInvite(friend.email)}
+                        onClick={() => sendInvite(invite.referredEmail)}
                       >
                         Remind
                       </button>
@@ -334,9 +418,7 @@ const InviteFriends = () => {
                   ))
                 ) : (
                   <div className="empty-friends-message">
-                    <p style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-                      No pending invites. Send some invites to your friends!
-                    </p>
+                    <p>No pending invites. Send some invites to your friends!</p>
                   </div>
                 )}
               </div>
@@ -346,7 +428,7 @@ const InviteFriends = () => {
             <div className="tips-card">
               <h3>Tips for Better Invites</h3>
               <ul className="tips-list">
-                <li>Share your personal experience with FutsalPro</li>
+                <li>Share your personal experience with FutsalGhar</li>
                 <li>Invite friends who love playing futsal</li>
                 <li>Share on WhatsApp groups and social media</li>
                 <li>Remind friends to use your referral link</li>
