@@ -12,6 +12,7 @@ const notificationSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: [
+      // Player notifications
       'booking_confirmation',
       'booking_reminder',
       'booking_cancelled',
@@ -27,8 +28,26 @@ const notificationSchema = new mongoose.Schema({
       'match_result',
       'referral_joined',
       'reward_earned',
-      'withdrawal_approved',
       'tournament_registration_approved',
+      
+      // Manager notifications
+      'court_created',
+      'court_deleted',
+      'court_status_updated',
+      'new_booking',
+      'booking_completed',
+      'revenue_earned',
+      'team_registered_for_tournament',
+      
+      // Admin notifications
+      'new_manager_registered',
+      'new_court_created',
+      'tournament_created',
+      'system_alert',
+      'user_report',
+      
+      // General
+      'withdrawal_approved',
       'general'
     ],
     required: true
@@ -49,7 +68,7 @@ const notificationSchema = new mongoose.Schema({
   relatedEntity: {
     entityType: {
       type: String,
-      enum: ['booking', 'team', 'match', 'tournament', 'user', 'challenge']
+      enum: ['booking', 'team', 'match', 'tournament', 'user', 'challenge', 'court']
     },
     entityId: mongoose.Schema.Types.ObjectId
   },

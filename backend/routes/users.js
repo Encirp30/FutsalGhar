@@ -1,7 +1,7 @@
 const express = require('express');
 const { auth } = require('../middleware/auth');
 const userController = require('../controllers/userController');
-const authController = require('../controllers/authController'); // ADD THIS
+const authController = require('../controllers/authController');
 
 const router = express.Router();
 
@@ -14,11 +14,14 @@ router.get('/statistics', auth, userController.getUserStatistics);
 router.get('/upcoming-matches', auth, userController.getUpcomingMatches);
 router.get('/booking-trends', auth, userController.getBookingTrends);
 
-// Profile update route - FIXED to use authController
+// Profile update route - uses authController
 router.put('/profile', auth, authController.updateProfile);
-router.get('/profile', auth, authController.getCurrentUser); // ADD THIS for consistency
+router.get('/profile', auth, authController.getCurrentUser);
 
-// ✅ ADDED: Get user by ID (for viewing player profiles)
+// Get user by ID (for viewing player profiles)
 router.get('/:id', auth, userController.getUserById);
+
+// Delete user account (for managers/admins/players)
+router.delete('/me', auth, authController.deleteAccount);
 
 module.exports = router;

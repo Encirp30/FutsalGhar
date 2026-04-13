@@ -14,24 +14,59 @@ exports.getManagerBookings = async (req, res) => {
     const courts = await Court.find({ owner: req.userId }).select('_id');
     const courtIds = courts.map(c => c._id);
 
-    let filter = { court: { $in: courtIds } };
-
-    if (status) filter.status = status;
-
-    const skip = (page - 1) * limit;
-
-    const bookings = await Booking.find(filter)
+    // Get ALL bookings for manager's courts
+    let allBookings = await Booking.find({ court: { $in: courtIds } })
       .populate('court', 'name')
       .populate('player', 'fullName email phone')
-      .skip(skip)
-      .limit(parseInt(limit))
       .sort({ date: -1 });
 
-    const total = await Booking.countDocuments(filter);
+    const now = new Date();
+
+    // Process each booking to determine its display status
+    let processedBookings = allBookings.map(booking => {
+      const bookingDateTime = new Date(booking.date);
+      const [hours, minutes] = booking.startTime.split(':').map(Number);
+      bookingDateTime.setHours(hours, minutes, 0, 0);
+      
+      let displayStatus = booking.status;
+      
+      if (booking.status === 'cancelled') {
+        displayStatus = 'cancelled';
+      } else if (booking.status === 'completed') {
+        displayStatus = 'completed';
+      } else if (booking.status === 'confirmed') {
+        if (bookingDateTime < now) {
+          displayStatus = 'completed';
+        } else {
+          displayStatus = 'upcoming';
+        }
+      }
+      
+      return {
+        ...booking.toObject(),
+        displayStatus
+      };
+    });
+
+    // Apply filter based on displayStatus
+    let filteredBookings = processedBookings;
+    if (status && status !== 'all') {
+      filteredBookings = processedBookings.filter(b => b.displayStatus === status);
+    }
+
+    // Apply pagination
+    const skip = (page - 1) * limit;
+    const paginatedBookings = filteredBookings.slice(skip, skip + parseInt(limit));
+    const total = filteredBookings.length;
+
+    // Calculate total revenue from completed bookings (using same logic)
+    const completedForRevenue = processedBookings.filter(b => b.displayStatus === 'completed');
+    const totalRevenue = completedForRevenue.reduce((sum, b) => sum + (b.totalCost || 0), 0);
 
     res.json({
       success: true,
-      bookings,
+      bookings: paginatedBookings,
+      totalRevenue,
       pagination: {
         total,
         pages: Math.ceil(total / limit),
@@ -39,6 +74,7 @@ exports.getManagerBookings = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Get manager bookings error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -107,6 +143,11 @@ exports.completeBooking = async (req, res) => {
       });
     }
 
+    const courtName = booking.court.name;
+    const bookingDate = booking.date;
+    const bookingTime = `${booking.startTime} - ${booking.endTime}`;
+    const amount = booking.totalCost;
+
     booking.status = 'completed';
     await booking.save();
 
@@ -129,6 +170,38 @@ exports.completeBooking = async (req, res) => {
     manager.walletBalance += booking.totalCost;
     await manager.save();
 
+    // Notify manager that booking is completed
+    try {
+      await Notification.create({
+        user: req.userId,
+        type: 'booking_completed',
+        title: 'Booking Completed',
+        message: `Booking for "${courtName}" on ${new Date(bookingDate).toDateString()} at ${bookingTime} has been completed.`,
+        relatedEntity: {
+          entityType: 'booking',
+          entityId: booking._id
+        }
+      });
+    } catch (notifyError) {
+      console.log('Booking completed notification error:', notifyError.message);
+    }
+
+    // Notify manager about revenue earned
+    try {
+      await Notification.create({
+        user: req.userId,
+        type: 'revenue_earned',
+        title: 'Revenue Earned',
+        message: `You earned Rs.${amount} from booking on "${courtName}".`,
+        relatedEntity: {
+          entityType: 'booking',
+          entityId: booking._id
+        }
+      });
+    } catch (notifyError) {
+      console.log('Revenue earned notification error:', notifyError.message);
+    }
+
     res.json({
       success: true,
       message: 'Booking marked as completed',
@@ -142,7 +215,7 @@ exports.completeBooking = async (req, res) => {
   }
 };
 
-// Get manager revenue
+// Get manager revenue - FIXED
 exports.getManagerRevenue = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -151,36 +224,57 @@ exports.getManagerRevenue = async (req, res) => {
     const courts = await Court.find({ owner: req.userId }).select('_id');
     const courtIds = courts.map(c => c._id);
 
-    const filter = {
-      court: { $in: courtIds },
-      status: 'completed',
-      paymentStatus: 'completed'
-    };
+    // Get ALL bookings for manager's courts
+    let allBookings = await Booking.find({ court: { $in: courtIds } })
+      .populate('court', 'name');
 
+    const now = new Date();
+
+    // Process each booking to determine if it should count as completed
+    let completedBookings = allBookings.filter(booking => {
+      if (booking.status === 'cancelled') return false;
+      if (booking.status === 'completed') return true;
+      if (booking.status === 'confirmed') {
+        const bookingDateTime = new Date(booking.date);
+        const [hours, minutes] = booking.startTime.split(':').map(Number);
+        bookingDateTime.setHours(hours, minutes, 0, 0);
+        return bookingDateTime < now;
+      }
+      return false;
+    });
+
+    // Apply date filters if provided
     if (startDate && endDate) {
-      filter.createdAt = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      };
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      completedBookings = completedBookings.filter(b => {
+        const bookingDate = new Date(b.date);
+        return bookingDate >= start && bookingDate <= end;
+      });
     }
 
-    const bookings = await Booking.find(filter);
-
-    const totalRevenue = bookings.reduce((sum, b) => sum + b.totalCost, 0);
-    const totalBookings = bookings.length;
+    const totalRevenue = completedBookings.reduce((sum, b) => sum + (b.totalCost || 0), 0);
+    const totalBookings = completedBookings.length;
 
     // Calculate daily revenue
-    const dailyRevenue = await Booking.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-          revenue: { $sum: '$totalCost' },
-          bookings: { $sum: 1 }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
+    const dailyRevenueMap = new Map();
+    completedBookings.forEach(booking => {
+      const dateKey = new Date(booking.date).toISOString().split('T')[0];
+      if (!dailyRevenueMap.has(dateKey)) {
+        dailyRevenueMap.set(dateKey, { revenue: 0, bookings: 0 });
+      }
+      const entry = dailyRevenueMap.get(dateKey);
+      entry.revenue += booking.totalCost;
+      entry.bookings += 1;
+    });
+
+    const dailyRevenue = Array.from(dailyRevenueMap.entries())
+      .map(([date, data]) => ({
+        _id: date,
+        revenue: data.revenue,
+        bookings: data.bookings
+      }))
+      .sort((a, b) => a._id.localeCompare(b._id));
 
     res.json({
       success: true,
@@ -191,6 +285,7 @@ exports.getManagerRevenue = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Get manager revenue error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -207,7 +302,7 @@ exports.getManagerWallet = async (req, res) => {
       success: true,
       wallet: {
         balance: user.walletBalance,
-        totalEarnings: user.walletBalance // Can be enhanced to track separately
+        totalEarnings: user.walletBalance
       }
     });
   } catch (error) {

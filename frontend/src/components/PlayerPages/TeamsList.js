@@ -34,9 +34,7 @@ const TeamsList = () => {
           return;
         }
         
-        // FIXED: Extract user from response (response.user contains the actual user object)
         const userData = response.user || response;
-        
         setUser(userData);
         
         const teamsData = await api.getTeams();
@@ -62,66 +60,40 @@ const TeamsList = () => {
     return captain?.profile?.fullName || captain?.username || "Unknown Captain";
   };
 
-  // FIXED: Get user team status
   const getUserTeamStatus = (team) => {
     if (!user || !team) return 'not_member';
     
-    // Get user ID from user object
     const currentUserId = String(user._id || user.id || "");
-    
-    // Check if user is captain
     const captainId = String(team.captain?._id || team.captain?.id || team.captain || "");
     if (currentUserId && captainId && currentUserId === captainId) {
       return 'owner';
     }
     
-    // Check if user is a member
     let isMember = false;
-    
     if (team.players && Array.isArray(team.players)) {
       isMember = team.players.some(p => {
-        let playerId = String(
-          p.player?._id || 
-          p.player?.id || 
-          p.player || 
-          p._id || 
-          p.id || 
-          ""
-        );
+        let playerId = String(p.player?._id || p.player?.id || p.player || p._id || p.id || "");
         return playerId === currentUserId;
       });
     }
-    
     if (isMember) return 'member';
-    
     return 'not_member';
   };
 
   const getLevelBadge = (level) => {
     const colors = {
-      beginner: { bg: '#dbeafe', color: '#1d4ed8', label: 'Beginner' },
-      recreational: { bg: '#d1fae5', color: '#065f46', label: 'Recreational' },
-      intermediate: { bg: '#fef3c7', color: '#92400e', label: 'Intermediate' },
-      competitive: { bg: '#fee2e2', color: '#dc2626', label: 'Competitive' },
-      professional: { bg: '#ede9fe', color: '#5b21b6', label: 'Professional' }
+      beginner: { bg: '#eff6ff', color: '#3b82f6', label: 'Beginner' },
+      recreational: { bg: '#f0fdf4', color: '#22c55e', label: 'Recreational' },
+      intermediate: { bg: '#fefce8', color: '#eab308', label: 'Intermediate' },
+      competitive: { bg: '#fef2f2', color: '#ef4444', label: 'Competitive' },
+      professional: { bg: '#f3e8ff', color: '#a855f7', label: 'Professional' }
     };
     const style = colors[level] || colors.beginner;
     return (
-      <span style={{ background: style.bg, color: style.color, padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>
+      <span className="level-badge" style={{ background: style.bg, color: style.color }}>
         {style.label}
       </span>
     );
-  };
-
-  const getLevelColor = (level) => {
-    switch(level) {
-      case 'beginner': return '#3b82f6';
-      case 'recreational': return '#10b981';
-      case 'intermediate': return '#f59e0b';
-      case 'competitive': return '#ef4444';
-      case 'professional': return '#8b5cf6';
-      default: return '#64748b';
-    }
   };
 
   const handleViewTeam = (team) => {
@@ -159,14 +131,12 @@ const TeamsList = () => {
 
   const getFilteredTeams = () => {
     let filtered = allTeams;
-    
     if (filter !== 'all') {
       filtered = filtered.filter(team => {
         const teamLevel = team.level || team.teamLevel;
         return teamLevel === filter;
       });
     }
-    
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(team => {
@@ -175,7 +145,6 @@ const TeamsList = () => {
         return teamName.toLowerCase().includes(searchLower) || captainName.includes(searchLower);
       });
     }
-    
     return filtered;
   };
 
@@ -193,7 +162,6 @@ const TeamsList = () => {
   return (
     <Layout activePage="teams">
       <div className="teams-list-page">
-        {/* Header Section */}
         <div className="teams-header-section">
           <div>
             <h1 className="teams-main-title">Teams</h1>
@@ -204,37 +172,21 @@ const TeamsList = () => {
           </button>
         </div>
 
-        {/* Filter Bar */}
         <div className="teams-filter-bar">
           <div className="filter-tabs">
-            <button 
-              className={`filter-chip ${filter === 'all' ? 'active' : ''}`}
-              onClick={() => setFilter('all')}
-            >
+            <button className={`filter-chip ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
               All Teams ({allTeams.length})
             </button>
-            <button 
-              className={`filter-chip ${filter === 'recreational' ? 'active' : ''}`}
-              onClick={() => setFilter('recreational')}
-            >
+            <button className={`filter-chip ${filter === 'recreational' ? 'active' : ''}`} onClick={() => setFilter('recreational')}>
               Recreational
             </button>
-            <button 
-              className={`filter-chip ${filter === 'intermediate' ? 'active' : ''}`}
-              onClick={() => setFilter('intermediate')}
-            >
+            <button className={`filter-chip ${filter === 'intermediate' ? 'active' : ''}`} onClick={() => setFilter('intermediate')}>
               Intermediate
             </button>
-            <button 
-              className={`filter-chip ${filter === 'competitive' ? 'active' : ''}`}
-              onClick={() => setFilter('competitive')}
-            >
+            <button className={`filter-chip ${filter === 'competitive' ? 'active' : ''}`} onClick={() => setFilter('competitive')}>
               Competitive
             </button>
-            <button 
-              className={`filter-chip ${filter === 'professional' ? 'active' : ''}`}
-              onClick={() => setFilter('professional')}
-            >
+            <button className={`filter-chip ${filter === 'professional' ? 'active' : ''}`} onClick={() => setFilter('professional')}>
               Professional
             </button>
           </div>
@@ -247,11 +199,10 @@ const TeamsList = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
             />
-            <span className="search-icon"></span>
+            <span className="search-icon">🔍</span>
           </div>
         </div>
 
-        {/* Teams Grid */}
         <div className="teams-grid">
           {filteredTeams.length > 0 ? (
             filteredTeams.map(team => {
@@ -261,47 +212,50 @@ const TeamsList = () => {
               const canJoin = userStatus === 'not_member';
               
               return (
-                <div key={team._id || team.id} className="team-card-new">
-                  <div className="team-card-header-new">
-                    <div className="team-icon-new" style={{ background: getLevelColor(team.level || team.teamLevel) }}>
-                      <span>⚽</span>
+                <div key={team._id || team.id} className="team-card">
+                  <div className="team-card-header">
+                    <div className="team-icon">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                        <path d="M5 20V19C5 15.13 8.13 12 12 12C15.87 12 19 15.13 19 19V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                      </svg>
                     </div>
-                    <div className="team-info-new">
-                      <h3 className="team-name-new">{team.name || team.teamName}</h3>
+                    <div className="team-info">
+                      <h3 className="team-name">{team.name || team.teamName}</h3>
                       {getLevelBadge(team.level || team.teamLevel)}
                     </div>
                   </div>
                   
-                  <div className="team-stats-new">
-                    <div className="stat-item-new">
+                  <div className="team-stats">
+                    <div className="stat-item">
                       <span className="stat-number">{team.players?.length || 0}</span>
-                      <span className="stat-label-new">Players</span>
+                      <span className="stat-label">Players</span>
                     </div>
                     <div className="stat-divider"></div>
-                    <div className="stat-item-new">
+                    <div className="stat-item">
                       <span className="stat-number">{team.matchesPlayed || team.totalMatches || 0}</span>
-                      <span className="stat-label-new">Matches</span>
+                      <span className="stat-label">Matches</span>
                     </div>
                     <div className="stat-divider"></div>
-                    <div className="stat-item-new">
+                    <div className="stat-item">
                       <span className="stat-number">{team.matchesWon || team.wins || 0}</span>
-                      <span className="stat-label-new">Wins</span>
+                      <span className="stat-label">Wins</span>
                     </div>
                   </div>
                   
-                  <div className="team-captain-new">
-                    <span className="captain-label-new">Captain</span>
-                    <span className="captain-name-new">{getCaptainName(team)}</span>
+                  <div className="team-captain">
+                    <span className="captain-label">Captain</span>
+                    <span className="captain-name">{getCaptainName(team)}</span>
                   </div>
                   
-                  <div className="team-actions-new">
+                  <div className="team-actions">
                     <button className="view-details-btn" onClick={() => handleViewTeam(team)}>
                       View Details
                     </button>
                     
                     {canJoin && (
-                      <button className="join-team-btn-new" onClick={() => handleJoinRequest(team)}>
-                        Request to Join →
+                      <button className="join-team-btn" onClick={() => handleJoinRequest(team)}>
+                        Request to Join
                       </button>
                     )}
                     
@@ -313,7 +267,7 @@ const TeamsList = () => {
                     
                     {isMember && !isOwner && (
                       <button className="member-badge" disabled>
-                        ✓ Member
+                        Member
                       </button>
                     )}
                   </div>
@@ -321,8 +275,13 @@ const TeamsList = () => {
               );
             })
           ) : (
-            <div className="empty-state-new">
-              <div className="empty-icon-new">👥</div>
+            <div className="empty-state">
+              <div className="empty-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  <path d="M5 20V19C5 15.13 8.13 12 12 12C15.87 12 19 15.13 19 19V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                </svg>
+              </div>
               <h3>No teams found</h3>
               <p>Try adjusting your search or create a new team</p>
               <button className="create-team-empty-btn" onClick={() => navigate('/create-team')}>
@@ -336,29 +295,29 @@ const TeamsList = () => {
       {/* Team Details Modal */}
       {showTeamModal && selectedTeam && (
         <div className="modal-overlay" onClick={() => setShowTeamModal(false)}>
-          <div className="team-modal-new" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header-new">
+          <div className="team-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
               <div>
                 <h2>{selectedTeam.name || selectedTeam.teamName}</h2>
                 {getLevelBadge(selectedTeam.level || selectedTeam.teamLevel)}
               </div>
-              <button className="close-modal-new" onClick={() => setShowTeamModal(false)}>×</button>
+              <button className="close-modal" onClick={() => setShowTeamModal(false)}>×</button>
             </div>
-            <div className="modal-body-new">
+            <div className="modal-body">
               <div className="info-row">
-                <span className="info-label">Captain:</span>
+                <span className="info-label">Captain</span>
                 <span className="info-value">{getCaptainName(selectedTeam)}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">Description:</span>
+                <span className="info-label">Description</span>
                 <p className="info-description">{selectedTeam.bio || selectedTeam.teamDescription || selectedTeam.description || 'No description provided.'}</p>
               </div>
               <div className="info-row">
-                <span className="info-label">Created:</span>
+                <span className="info-label">Created</span>
                 <span className="info-value">{selectedTeam.createdAt ? new Date(selectedTeam.createdAt).toLocaleDateString() : 'Unknown'}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">Visibility:</span>
+                <span className="info-label">Visibility</span>
                 <span className="info-value">{selectedTeam.visibility === 'public' ? 'Public' : 'Private'}</span>
               </div>
               
@@ -380,7 +339,7 @@ const TeamsList = () => {
                 </div>
               </div>
             </div>
-            <div className="modal-footer-new">
+            <div className="modal-footer">
               <button className="close-btn" onClick={() => setShowTeamModal(false)}>Close</button>
               {getUserTeamStatus(selectedTeam) === 'not_member' && (
                 <button className="join-btn" onClick={() => {
@@ -398,12 +357,12 @@ const TeamsList = () => {
       {/* Join Request Modal */}
       {showJoinModal && joinTeam && (
         <div className="modal-overlay" onClick={() => setShowJoinModal(false)}>
-          <div className="join-modal-new" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header-new">
+          <div className="join-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
               <h2>Request to Join {joinTeam.name || joinTeam.teamName}</h2>
-              <button className="close-modal-new" onClick={() => setShowJoinModal(false)}>×</button>
+              <button className="close-modal" onClick={() => setShowJoinModal(false)}>×</button>
             </div>
-            <div className="modal-body-new">
+            <div className="modal-body">
               <div className="team-info-preview">
                 <p><strong>Captain:</strong> {getCaptainName(joinTeam)}</p>
                 <p><strong>Level:</strong> {joinTeam.level || joinTeam.teamLevel}</p>
@@ -411,7 +370,7 @@ const TeamsList = () => {
               </div>
               
               <div className="message-section">
-                <label>Message to Captain:</label>
+                <label>Message to Captain</label>
                 <textarea
                   value={joinMessage}
                   onChange={(e) => setJoinMessage(e.target.value)}
@@ -421,8 +380,8 @@ const TeamsList = () => {
                 />
               </div>
             </div>
-            <div className="modal-footer-new">
-              <button className="cancel-btn-new" onClick={() => setShowJoinModal(false)}>Cancel</button>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setShowJoinModal(false)}>Cancel</button>
               <button className="send-btn" onClick={submitJoinRequest} disabled={isSubmitting}>
                 {isSubmitting ? 'Sending...' : 'Send Request'}
               </button>

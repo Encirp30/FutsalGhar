@@ -36,17 +36,21 @@ const ManagerDashboard = () => {
           setCourts([]);
         }
 
+        // Get manager bookings
         try {
-          const bookingsData = await api.getBookings();
-          setRecentBookings((bookingsData.data || []).slice(0, 3));
+          const bookingsData = await apiFetch('/manager/bookings');
+          setRecentBookings((bookingsData.bookings || []).slice(0, 5));
         } catch (e) {
+          console.error('Error fetching manager bookings:', e);
           setRecentBookings([]);
         }
 
+        // ✅ FIXED: Revenue data is in revenueData.revenue, not revenueData.data
         try {
           const revenueData = await apiFetch('/manager/revenue');
-          setTotalRevenue(revenueData.data?.totalRevenue || 0);
+          setTotalRevenue(revenueData.revenue?.totalRevenue || 0);
         } catch (e) {
+          console.error('Error fetching revenue:', e);
           setTotalRevenue(0);
         }
 
@@ -59,6 +63,13 @@ const ManagerDashboard = () => {
 
     fetchManagerData();
   }, [navigate]);
+
+  // Helper function to format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   if (loading) {
     return (
@@ -77,63 +88,133 @@ const ManagerDashboard = () => {
           <p className="manager-subtitle">Overview of your futsal business</p>
         </div>
 
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon blue">🏟️</div>
-            <div className="stat-info">
-              <h3>{courts.length}</h3>
-              <p>Total Courts</p>
+        {/* Stats Section */}
+        <div className="stats-section">
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M8 2V6M16 2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M3 10H21" stroke="currentColor" strokeWidth="1.5"/>
+                </svg>
+              </div>
+              <div className="stat-info">
+                <h3>{courts.length}</h3>
+                <p>Total Courts</p>
+              </div>
             </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon green">💰</div>
-            <div className="stat-info">
-              <h3>Rs.{totalRevenue.toLocaleString()}</h3>
-              <p>Total Revenue</p>
+            
+            <div className="stat-card">
+              <div className="stat-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <div className="stat-info">
+                <h3>{recentBookings.length}</h3>
+                <p>Recent Bookings</p>
+              </div>
             </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon orange">📅</div>
-            <div className="stat-info">
-              <h3>{recentBookings.length}</h3>
-              <p>Recent Bookings</p>
+            
+            <div className="stat-card">
+              <div className="stat-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L15 8L22 9L17 14L18 21L12 18L6 21L7 14L2 9L9 8L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="stat-info">
+                <h3>Rs.{totalRevenue.toLocaleString()}</h3>
+                <p>Total Revenue</p>
+              </div>
             </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon purple">⭐</div>
-            <div className="stat-info">
-              <h3>{user?.averageRating || '4.8'}</h3>
-              <p>Avg Rating</p>
+            
+            <div className="stat-card">
+              <div className="stat-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  <path d="M5 20V19C5 15.13 8.13 12 12 12C15.87 12 19 15.13 19 19V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                </svg>
+              </div>
+              <div className="stat-info">
+                <h3>{user?.averageRating || '4.8'}</h3>
+                <p>Avg Rating</p>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Quick Actions Section */}
         <div className="quick-actions-section">
           <h3 className="section-title">Quick Actions</h3>
           <div className="quick-actions">
             <div className="action-card" onClick={() => navigate('/manager-courts')}>
-              <div className="action-icon">🏟️</div>
+              <div className="action-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M8 2V6M16 2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M3 10H21" stroke="currentColor" strokeWidth="1.5"/>
+                </svg>
+              </div>
               <h4>Manage Courts</h4>
               <p>Edit court details, pricing</p>
             </div>
             <div className="action-card" onClick={() => navigate('/create-tournament')}>
-              <div className="action-icon">🏆</div>
+              <div className="action-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L15 8L22 9L17 14L18 21L12 18L6 21L7 14L2 9L9 8L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                </svg>
+              </div>
               <h4>Create Tournament</h4>
               <p>Host new competitions</p>
             </div>
             <div className="action-card" onClick={() => navigate('/manager-teams')}>
-              <div className="action-icon">👥</div>
+              <div className="action-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  <path d="M5 20V19C5 15.13 8.13 12 12 12C15.87 12 19 15.13 19 19V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                </svg>
+              </div>
               <h4>View Teams</h4>
               <p>See all registered teams</p>
             </div>
             <div className="action-card" onClick={() => navigate('/manager-players')}>
-              <div className="action-icon">👤</div>
+              <div className="action-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  <path d="M5 20V19C5 15.13 8.13 12 12 12C15.87 12 19 15.13 19 19V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                </svg>
+              </div>
               <h4>View Players</h4>
               <p>See all players</p>
             </div>
           </div>
         </div>
 
+        {/* Recent Bookings Section */}
+        <div className="recent-bookings-section">
+          <h3 className="section-title">Recent Bookings</h3>
+          <div className="bookings-list">
+            {recentBookings.length > 0 ? (
+              recentBookings.map((booking, index) => (
+                <div key={booking._id || index} className="booking-item">
+                  <div className="booking-info">
+                    <h4>{booking.court?.name || 'Court'}</h4>
+                    <p>{formatDate(booking.date)} • {booking.startTime} - {booking.endTime}</p>
+                  </div>
+                  <div className="booking-price">
+                    Rs.{booking.totalCost || 0}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-data">No recent bookings found.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Your Courts Section */}
         <div className="courts-summary">
           <h3 className="section-title">Your Courts</h3>
           <div className="courts-grid">
@@ -147,20 +228,20 @@ const ManagerDashboard = () => {
                 </div>
                 <div className="court-summary-stats">
                   <div>
-                    <p>Price</p>
-                    <strong>Rs.{court.pricePerHour || 0}/hr</strong>
+                    <p>Price per hour</p>
+                    <strong>Rs.{court.pricePerHour || 0}</strong>
                   </div>
                   <div>
-                    <p>Bookings</p>
+                    <p>Total Bookings</p>
                     <strong>{court.totalBookings || 0}</strong>
                   </div>
                 </div>
                 <button className="view-court-btn" onClick={() => navigate('/manager-courts')}>
-                  Manage Court →
+                  Manage Court
                 </button>
               </div>
             )) : (
-              <p style={{ color: '#64748b' }}>No courts added yet.</p>
+              <div className="no-data">No courts added yet.</div>
             )}
           </div>
         </div>

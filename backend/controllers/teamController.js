@@ -592,11 +592,11 @@ exports.removePlayer = async (req, res) => {
   }
 };
 
-// Update player roster (captain only)
+// Update player roster (captain, manager, or admin) - FIXED to allow manager
 exports.updateTeamRoster = async (req, res) => {
   try {
     const { id } = req.params;
-    const { playerIndex, name, position, jerseyNumber, isActive } = req.body;
+    const { playerIndex, name, position, jerseyNumber, isActive, goals, assists, matchesPlayed, yellowCards, redCards } = req.body;
 
     const team = await Team.findById(id);
 
@@ -606,16 +606,19 @@ exports.updateTeamRoster = async (req, res) => {
       });
     }
 
-    // Check authorization: captain or admin
+    // Check authorization: captain, manager, or admin
     const user = await User.findById(req.userId);
-    if (team.captain.toString() !== req.userId.toString() && user.role !== 'admin') {
+    const isCaptain = team.captain.toString() === req.userId.toString();
+    const isManagerOrAdmin = user.role === 'manager' || user.role === 'admin';
+
+    if (!isCaptain && !isManagerOrAdmin) {
       return res.status(403).json({
-        message: 'Only captain or admin can update roster'
+        message: 'Only captain, manager, or admin can update roster'
       });
     }
 
     // Validate playerIndex
-    if (!playerIndex && playerIndex !== 0) {
+    if (playerIndex === undefined || playerIndex === null) {
       return res.status(400).json({
         message: 'Player index is required'
       });
@@ -641,10 +644,17 @@ exports.updateTeamRoster = async (req, res) => {
     }
 
     // Update player fields
-    if (name) team.players[playerIndex].name = name;
-    if (position) team.players[playerIndex].position = position.toLowerCase();
+    if (name !== undefined) team.players[playerIndex].name = name;
+    if (position !== undefined) team.players[playerIndex].position = position.toLowerCase();
     if (jerseyNumber !== undefined) team.players[playerIndex].jerseyNumber = Number(jerseyNumber);
     if (isActive !== undefined) team.players[playerIndex].isActive = isActive;
+    
+    // Update stats fields
+    if (goals !== undefined) team.players[playerIndex].goals = Number(goals);
+    if (assists !== undefined) team.players[playerIndex].assists = Number(assists);
+    if (matchesPlayed !== undefined) team.players[playerIndex].matchesPlayed = Number(matchesPlayed);
+    if (yellowCards !== undefined) team.players[playerIndex].yellowCards = Number(yellowCards);
+    if (redCards !== undefined) team.players[playerIndex].redCards = Number(redCards);
 
     team.updatedAt = Date.now();
     await team.save();
@@ -655,6 +665,7 @@ exports.updateTeamRoster = async (req, res) => {
       team
     });
   } catch (error) {
+    console.error('Update team roster error:', error);
     res.status(500).json({
       message: error.message
     });

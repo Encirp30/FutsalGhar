@@ -1,5 +1,7 @@
 const Court = require('../models/Court');
 const Booking = require('../models/Booking');
+const Notification = require('../models/Notification');
+const User = require('../models/User');
 
 // Get all courts with filters
 exports.getAllCourts = async (req, res) => {
@@ -113,6 +115,37 @@ exports.createCourt = async (req, res) => {
 
     await court.save();
 
+    // ✅ NOTIFICATION: Notify manager that court was created
+    try {
+      await Notification.create({
+        user: req.userId,
+        type: 'court_created',
+        title: 'Court Created',
+        message: `Your court "${name}" has been created successfully.`,
+        relatedEntity: {
+          entityType: 'court',
+          entityId: court._id
+        }
+      });
+
+      // Notify all admins about new court
+      const admins = await User.find({ role: 'admin' });
+      for (const admin of admins) {
+        await Notification.create({
+          user: admin._id,
+          type: 'new_court_created',
+          title: 'New Court Created',
+          message: `A new court "${name}" has been created by ${req.userId}`,
+          relatedEntity: {
+            entityType: 'court',
+            entityId: court._id
+          }
+        });
+      }
+    } catch (notifyError) {
+      console.log('Notification error:', notifyError.message);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Court created successfully',
@@ -149,6 +182,10 @@ exports.updateCourt = async (req, res) => {
       });
     }
 
+    // Check if status is being updated
+    const oldStatus = court.status;
+    const newStatus = updates.status;
+
     Object.keys(updates).forEach(key => {
       if (key !== 'owner') {
         court[key] = updates[key];
@@ -157,6 +194,24 @@ exports.updateCourt = async (req, res) => {
 
     court.updatedAt = Date.now();
     await court.save();
+
+    // ✅ NOTIFICATION: Notify manager if court status changed
+    if (oldStatus && newStatus && oldStatus !== newStatus) {
+      try {
+        await Notification.create({
+          user: req.userId,
+          type: 'court_status_updated',
+          title: 'Court Status Updated',
+          message: `Your court "${court.name}" is now ${newStatus === 'open' ? 'Open' : 'Closed'}.`,
+          relatedEntity: {
+            entityType: 'court',
+            entityId: court._id
+          }
+        });
+      } catch (notifyError) {
+        console.log('Notification error:', notifyError.message);
+      }
+    }
 
     res.json({
       success: true,
@@ -232,7 +287,7 @@ exports.blockTimeSlot = async (req, res) => {
   }
 };
 
-// FIXED: Added deleteCourt function
+// Delete court
 exports.deleteCourt = async (req, res) => {
   try {
     const { id } = req.params;
@@ -253,11 +308,60 @@ exports.deleteCourt = async (req, res) => {
       });
     }
 
+    const courtName = court.name;
     await Court.findByIdAndDelete(id);
+
+    // ✅ NOTIFICATION: Notify manager that court was deleted
+    try {
+      await Notification.create({
+        user: req.userId,
+        type: 'court_deleted',
+        title: 'Court Deleted',
+        message: `Your court "${courtName}" has been deleted.`,
+        relatedEntity: {
+          entityType: 'court',
+          entityId: id
+        }
+      });
+
+      // Notify all admins about court deletion
+      const admins = await User.find({ role: 'admin' });
+      for (const admin of admins) {
+        await Notification.create({
+          user: admin._id,
+          type: 'court_deleted',
+          title: 'Court Deleted',
+          message: `Court "${courtName}" has been deleted.`,
+          relatedEntity: {
+            entityType: 'court',
+            entityId: id
+          }
+        });
+      }
+    } catch (notifyError) {
+      console.log('Notification error:', notifyError.message);
+    }
 
     res.json({
       success: true,
       message: 'Court deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Get all courts for manager (including closed courts)
+exports.getAllCourtsForManager = async (req, res) => {
+  try {
+    const courts = await Court.find().populate('owner', 'fullName phone');
+    
+    res.json({
+      success: true,
+      data: courts
     });
   } catch (error) {
     res.status(500).json({

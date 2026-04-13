@@ -41,6 +41,27 @@ const teamSchema = new mongoose.Schema({
     joinedAt: {
       type: Date,
       default: Date.now
+    },
+    // Player statistics
+    goals: {
+      type: Number,
+      default: 0
+    },
+    assists: {
+      type: Number,
+      default: 0
+    },
+    matchesPlayed: {
+      type: Number,
+      default: 0
+    },
+    yellowCards: {
+      type: Number,
+      default: 0
+    },
+    redCards: {
+      type: Number,
+      default: 0
     }
   }],
   

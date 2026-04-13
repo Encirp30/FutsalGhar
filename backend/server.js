@@ -1,8 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const cron = require('node-cron');
 const connectDB = require('./config/database');
 const { errorHandler } = require('./middleware/error');
+const completePastBookings = require('./jobs/completePastBookings');
 
 // Connect to database
 connectDB();
@@ -51,7 +53,19 @@ app.use('/api/challenges', require('./routes/challenges'));
 app.use('/api/referrals', require('./routes/referrals'));
 app.use('/api/manager', require('./routes/manager'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/notifications', require('./routes/notifications')); // ✅ ADDED
+app.use('/api/notifications', require('./routes/notifications'));
+
+// Schedule job to run every day at 1:00 AM
+cron.schedule('0 1 * * *', () => {
+  console.log('Running scheduled job: completePastBookings');
+  completePastBookings();
+});
+
+// Also run once on server startup to catch any missed bookings
+setTimeout(() => {
+  console.log('Running initial completePastBookings on startup');
+  completePastBookings();
+}, 5000);
 
 // 404 handler - must come BEFORE error handler
 app.use((req, res) => {

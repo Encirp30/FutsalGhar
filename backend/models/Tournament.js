@@ -62,7 +62,20 @@ const tournamentSchema = new mongoose.Schema({
     }
   }],
   
+  // Registration deadline
+  registrationDeadline: {
+    type: Date
+  },
+  
   // Prize pool
+  priceDistribution: {
+    first: { type: Number, default: 0 },
+    second: { type: Number, default: 0 },
+    third: { type: Number, default: 0 },
+    total: { type: Number, default: 0 }
+  },
+  
+  // Keep old field for backward compatibility
   totalPrizePool: Number,
   prizeDistribution: {
     firstPlace: Number,
@@ -116,6 +129,8 @@ const tournamentSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+// REMOVED the problematic pre-save middleware
 
 tournamentSchema.index({ organizer: 1 });
 tournamentSchema.index({ status: 1 });

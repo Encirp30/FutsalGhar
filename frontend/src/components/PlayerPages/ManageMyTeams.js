@@ -95,7 +95,12 @@ const ManageMyTeams = () => {
       <Layout activePage="manage-my-teams">
         <div className="manage-teams-container">
           <div className="empty-state">
-            <div className="empty-icon">👥</div>
+            <div className="empty-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                <path d="M5 20V19C5 15.13 8.13 12 12 12C15.87 12 19 15.13 19 19V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+              </svg>
+            </div>
             <h3>You haven't created any teams yet.</h3>
             <p>Create your first team to start managing players and setting up matches!</p>
             <button className="create-btn" onClick={() => navigate('/create-team')}>
@@ -120,7 +125,12 @@ const ManageMyTeams = () => {
           {myOwnedTeams.map(team => (
             <div key={team._id || team.id} className="team-card">
               <div className="team-card-header">
-                <div className="team-icon">👥</div>
+                <div className="team-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="white" strokeWidth="1.5" fill="none"/>
+                    <path d="M5 20V19C5 15.13 8.13 12 12 12C15.87 12 19 15.13 19 19V20" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                  </svg>
+                </div>
                 <h3>{team.name || team.teamName}</h3>
               </div>
               <div className="team-stats">

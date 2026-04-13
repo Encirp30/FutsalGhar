@@ -14,4 +14,7 @@ router.get('/player/statistics', matchController.getPlayerStatistics);
 router.post('/', auth, authorize('manager', 'admin'), matchController.createMatch);
 router.put('/:id/result', auth, authorize('manager', 'admin'), matchController.updateMatchResult);
 
+// Delete match (for managers/admins)
+router.delete('/:id', auth, authorize('manager', 'admin'), matchController.deleteMatch);
+
 module.exports = router;

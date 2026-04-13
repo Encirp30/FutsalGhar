@@ -109,7 +109,7 @@ exports.createBooking = async (req, res) => {
       console.log("Email service error:", emailErr.message);
     }
 
-    // Create notification
+    // Create notification for player
     await Notification.create({
       user: req.userId,
       type: 'booking_confirmation',
@@ -120,6 +120,22 @@ exports.createBooking = async (req, res) => {
         entityId: booking._id
       }
     });
+
+    // ✅ NEW: Notify court owner (manager) about new booking
+    try {
+      await Notification.create({
+        user: court.owner,
+        type: 'new_booking',
+        title: 'New Booking Received',
+        message: `New booking for "${court.name}" on ${new Date(date).toDateString()} at ${startTime}`,
+        relatedEntity: {
+          entityType: 'booking',
+          entityId: booking._id
+        }
+      });
+    } catch (notifyError) {
+      console.log('Manager notification error:', notifyError.message);
+    }
 
     res.status(201).json({
       success: true,
@@ -258,7 +274,7 @@ exports.cancelBooking = async (req, res) => {
     const { id } = req.params;
     const { reason } = req.body;
 
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findById(id).populate('court');
 
     if (!booking) {
       return res.status(404).json({
@@ -302,6 +318,22 @@ exports.cancelBooking = async (req, res) => {
         entityId: booking._id
       }
     });
+
+    // ✅ NEW: Notify court owner (manager) about cancelled booking
+    try {
+      await Notification.create({
+        user: booking.court.owner,
+        type: 'booking_cancelled',
+        title: 'Booking Cancelled',
+        message: `A booking for "${booking.court.name}" on ${new Date(booking.date).toDateString()} at ${booking.startTime} has been cancelled.`,
+        relatedEntity: {
+          entityType: 'booking',
+          entityId: booking._id
+        }
+      });
+    } catch (notifyError) {
+      console.log('Manager cancellation notification error:', notifyError.message);
+    }
 
     res.json({
       success: true,
@@ -409,7 +441,7 @@ exports.rescheduleBooking = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    // Send notification for reschedule
+    // Send notification for reschedule to player
     try {
       await Notification.create({
         user: req.userId,

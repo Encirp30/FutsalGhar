@@ -29,13 +29,32 @@ exports.createTournament = async (req, res) => {
 
     await tournament.save();
 
-    res.status(201).json({
+    // Notify all admins about new tournament
+    try {
+      const admins = await User.find({ role: 'admin' });
+      for (const admin of admins) {
+        await Notification.create({
+          user: admin._id,
+          type: 'tournament_created',
+          title: 'New Tournament Created',
+          message: `A new tournament "${name}" has been created.`,
+          relatedEntity: {
+            entityType: 'tournament',
+            entityId: tournament._id
+          }
+        });
+      }
+    } catch (notifyError) {
+      console.log('Tournament creation notification error:', notifyError.message);
+    }
+
+    return res.status(201).json({
       success: true,
       message: 'Tournament created successfully',
       tournament
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message
     });
@@ -62,7 +81,7 @@ exports.getAllTournaments = async (req, res) => {
 
     const total = await Tournament.countDocuments(filter);
 
-    res.json({
+    return res.json({
       success: true,
       tournaments,
       pagination: {
@@ -72,7 +91,7 @@ exports.getAllTournaments = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message
     });
@@ -97,12 +116,12 @@ exports.getTournamentById = async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       tournament
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message
     });
@@ -176,7 +195,7 @@ exports.registerTeam = async (req, res) => {
 
     await tournament.save();
 
-    // Notify team
+    // Notify team captain
     await Notification.create({
       user: req.userId,
       type: 'tournament_registration_approved',
@@ -188,13 +207,29 @@ exports.registerTeam = async (req, res) => {
       }
     });
 
-    res.json({
+    // Notify tournament organizer (manager) about team registration
+    try {
+      await Notification.create({
+        user: tournament.organizer,
+        type: 'team_registered_for_tournament',
+        title: 'Team Registered for Tournament',
+        message: `Team "${team.name}" has registered for "${tournament.name}".`,
+        relatedEntity: {
+          entityType: 'tournament',
+          entityId: tournament._id
+        }
+      });
+    } catch (notifyError) {
+      console.log('Team registration notification error:', notifyError.message);
+    }
+
+    return res.json({
       success: true,
       message: 'Team registered successfully',
       tournament
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message
     });
@@ -221,13 +256,13 @@ exports.updateTournamentStatus = async (req, res) => {
 
     await tournament.save();
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Tournament status updated',
       tournament
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message
     });
@@ -256,13 +291,13 @@ exports.declareWinner = async (req, res) => {
 
     await tournament.save();
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Winner declared',
       tournament
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message
     });
@@ -280,12 +315,132 @@ exports.getTeamTournaments = async (req, res) => {
       .populate('organizer', 'fullName')
       .populate('winner runnerUp', 'name');
 
-    res.json({
+    return res.json({
       success: true,
       tournaments
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Update tournament details (for managers/admins)
+exports.updateTournament = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name, description, venue, startDate, endDate, registrationDeadline,
+      format, maxTeams, entryFee, priceDistribution, rulesDescription, status
+    } = req.body;
+
+    const tournament = await Tournament.findById(id);
+
+    if (!tournament) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tournament not found'
+      });
+    }
+
+    // Only allow updates if tournament is not completed
+    if (tournament.status === 'completed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot edit a completed tournament'
+      });
+    }
+
+    // Update fields
+    if (name !== undefined) tournament.name = name;
+    if (description !== undefined) tournament.description = description;
+    if (venue !== undefined) tournament.venue = venue;
+    if (startDate !== undefined) tournament.startDate = new Date(startDate);
+    if (endDate !== undefined) tournament.endDate = new Date(endDate);
+    if (registrationDeadline !== undefined) tournament.registrationDeadline = new Date(registrationDeadline);
+    if (format !== undefined) tournament.format = format;
+    if (maxTeams !== undefined) tournament.maxTeams = maxTeams;
+    if (entryFee !== undefined) tournament.entryFee = entryFee;
+    if (priceDistribution !== undefined) tournament.priceDistribution = priceDistribution;
+    if (rulesDescription !== undefined) tournament.rulesDescription = rulesDescription;
+    if (status !== undefined && tournament.status !== 'ongoing') tournament.status = status;
+
+    tournament.updatedAt = Date.now();
+    await tournament.save();
+
+    // Notify registered teams about the update
+    try {
+      for (const registeredTeam of tournament.registeredTeams) {
+        const team = await Team.findById(registeredTeam.team);
+        if (team && team.captain) {
+          await Notification.create({
+            user: team.captain,
+            type: 'general',
+            title: 'Tournament Updated',
+            message: `Tournament "${tournament.name}" details have been updated. Please check the new information.`,
+            relatedEntity: {
+              entityType: 'tournament',
+              entityId: tournament._id
+            }
+          });
+        }
+      }
+    } catch (notifyError) {
+      console.log('Tournament update notification error:', notifyError.message);
+    }
+
+    return res.json({
+      success: true,
+      message: 'Tournament updated successfully',
+      tournament
+    });
+  } catch (error) {
+    console.error('Update tournament error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Delete tournament (for managers/admins)
+exports.deleteTournament = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const tournament = await Tournament.findById(id);
+    
+    if (!tournament) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tournament not found'
+      });
+    }
+    
+    // Only allow deletion if tournament is not completed or ongoing
+    if (tournament.status === 'completed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete a completed tournament'
+      });
+    }
+    
+    // Optional: Also delete associated matches? (commented out - decide if you want this)
+    // if (tournament.matches && tournament.matches.length > 0) {
+    //   await Match.deleteMany({ _id: { $in: tournament.matches } });
+    // }
+    
+    await tournament.deleteOne();
+    
+    return res.json({
+      success: true,
+      message: 'Tournament deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete tournament error:', error);
+    return res.status(500).json({
       success: false,
       message: error.message
     });

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, getAuthToken } from '../../services/api';
+import { api, apiFetch, getAuthToken } from '../../services/api';
 import Layout from '../Layout';
-import './ManagerDashboard.css';
+import './ManagerCourts.css';
 
 const ManagerCourts = () => {
   const navigate = useNavigate();
@@ -18,7 +18,8 @@ const ManagerCourts = () => {
         return;
       }
       
-      const courtsData = await api.getCourts();
+      // ✅ CHANGED: Use new endpoint that returns ALL courts (including closed)
+      const courtsData = await apiFetch('/courts/manager/all');
       const managerCourts = (courtsData.data || []);
       setCourts(managerCourts);
       
@@ -66,7 +67,6 @@ const ManagerCourts = () => {
     const newStatus = selectedCourt.status === 'open' ? 'closed' : 'open';
     
     try {
-      // ONLY send the status update to avoid accidental data loss
       await api.updateCourt(selectedCourt._id, { status: newStatus });
 
       const updatedCourt = { ...selectedCourt, status: newStatus };
@@ -81,7 +81,7 @@ const ManagerCourts = () => {
     try {
       await api.updateCourt(selectedCourt._id, selectedCourt);
       alert('Changes saved successfully!');
-      navigate('/manager-dashboard'); // Redirect to dashboard after saving
+      navigate('/manager-dashboard');
     } catch (error) {
       alert('Update failed: ' + error.message);
     }
@@ -95,31 +95,36 @@ const ManagerCourts = () => {
       setLoading(true);
       await api.deleteCourt(selectedCourt._id);
       alert('Court deleted successfully.');
-      window.location.reload(); // Refresh to update list
+      window.location.reload();
     } catch (error) {
       alert('Delete failed: ' + error.message);
       setLoading(false);
     }
   };
 
-  if (loading) return <div className="loading-container"><div className="loading-spinner"></div></div>;
+  if (loading) return (
+    <div className="loading-container">
+      <div className="loading-spinner"></div>
+      <p>Loading Courts...</p>
+    </div>
+  );
 
   return (
     <Layout activePage="managerCourts">
-      <div className="manager-dashboard">
-        <div className="manager-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="manager-courts-page">
+        <div className="page-header">
           <div>
-            <h1 className="manager-title">Court Management</h1>
-            <p className="manager-subtitle">Manage availability and details</p>
+            <h1 className="page-title">Court Management</h1>
+            <p className="page-subtitle">Manage availability and details</p>
           </div>
-          <button className="save-btn" onClick={handleCreateCourt} style={{ backgroundColor: '#10b981' }}>
+          <button className="create-court-btn" onClick={handleCreateCourt}>
             + Create New Court
           </button>
         </div>
 
         <div className="court-selector">
           <div className="selector-group">
-            <span className="selector-label">Select Court:</span>
+            <span className="selector-label">Select Court</span>
             <select 
               className="court-select"
               value={selectedCourt?._id || ''}
@@ -132,64 +137,79 @@ const ManagerCourts = () => {
           </div>
           
           {selectedCourt && (
-            <div className={`status-pill ${selectedCourt.status}`}>
-              {selectedCourt.status === 'open' ? '● LIVE' : '○ CLOSED'}
+            <div className={`court-status-badge ${selectedCourt.status === 'open' ? 'status-open' : 'status-closed'}`}>
+              <span className="status-dot"></span>
+              {selectedCourt.status === 'open' ? 'Open for Booking' : 'Closed'}
             </div>
           )}
         </div>
 
         {selectedCourt ? (
-          <div className="tab-content">
-            <div className="status-toggle-section" style={{ 
-                padding: '20px', 
-                backgroundColor: selectedCourt.status === 'open' ? '#ecfdf5' : '#fef2f2',
-                borderRadius: '8px', marginBottom: '20px', display: 'flex',
-                justifyContent: 'space-between', alignItems: 'center',
-                border: `1px solid ${selectedCourt.status === 'open' ? '#10b981' : '#ef4444'}`
-            }}>
-                <div>
-                    <h4 style={{ margin: 0 }}>Current Status: {selectedCourt.status.toUpperCase()}</h4>
-                </div>
-                <button 
-                    onClick={handleToggleStatus}
-                    style={{
-                        padding: '10px 20px', borderRadius: '6px', border: 'none',
-                        color: 'white', fontWeight: 'bold', cursor: 'pointer',
-                        backgroundColor: selectedCourt.status === 'open' ? '#ef4444' : '#10b981'
-                    }}
-                >
-                    {selectedCourt.status === 'open' ? 'CLOSE FOR BOOKING' : 'OPEN FOR BOOKING'}
-                </button>
+          <div className="court-details-card">
+            <div className={`status-toggle-section ${selectedCourt.status === 'open' ? 'status-open-section' : 'status-closed-section'}`}>
+              <div>
+                <h4>Current Status</h4>
+                <p>{selectedCourt.status === 'open' ? 'Court is open for bookings' : 'Court is currently closed'}</p>
+              </div>
+              <button 
+                className={`toggle-status-btn ${selectedCourt.status === 'open' ? 'btn-close' : 'btn-open'}`}
+                onClick={handleToggleStatus}
+              >
+                {selectedCourt.status === 'open' ? 'Close Court' : 'Open Court'}
+              </button>
             </div>
 
             <div className="court-details-form">
               <div className="form-row">
                 <div className="form-group">
                   <label>Court Name</label>
-                  <input type="text" value={selectedCourt.name || ''} onChange={(e) => setSelectedCourt({...selectedCourt, name: e.target.value})} />
+                  <input 
+                    type="text" 
+                    value={selectedCourt.name || ''} 
+                    onChange={(e) => setSelectedCourt({...selectedCourt, name: e.target.value})} 
+                    placeholder="Enter court name"
+                  />
                 </div>
                 <div className="form-group">
-                  <label>Price (Rs/hr)</label>
-                  <input type="number" value={selectedCourt.pricePerHour || ''} onChange={(e) => setSelectedCourt({...selectedCourt, pricePerHour: parseInt(e.target.value)})} />
+                  <label>Price per hour (Rs.)</label>
+                  <input 
+                    type="number" 
+                    value={selectedCourt.pricePerHour || ''} 
+                    onChange={(e) => setSelectedCourt({...selectedCourt, pricePerHour: parseInt(e.target.value)})} 
+                    placeholder="Enter price"
+                  />
                 </div>
               </div>
+              
               <div className="form-group">
-                  <label>Address</label>
-                  <input type="text" value={selectedCourt.location?.address || ''} onChange={(e) => setSelectedCourt({...selectedCourt, location: {...selectedCourt.location, address: e.target.value}})} />
+                <label>Address</label>
+                <input 
+                  type="text" 
+                  value={selectedCourt.location?.address || ''} 
+                  onChange={(e) => setSelectedCourt({...selectedCourt, location: {...selectedCourt.location, address: e.target.value}})} 
+                  placeholder="Enter court address"
+                />
               </div>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-                <button className="save-btn" onClick={handleGeneralUpdate}>Save Changes & Return</button>
-                <button 
-                  onClick={handleDeleteCourt}
-                  style={{ backgroundColor: 'transparent', color: '#ef4444', border: '1px solid #ef4444', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer' }}
-                >
-                  Delete Court
-                </button>
+              <div className="form-actions">
+                <button className="save-btn" onClick={handleGeneralUpdate}>Save Changes</button>
+                <button className="delete-btn" onClick={handleDeleteCourt}>Delete Court</button>
               </div>
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="empty-state">
+            <div className="empty-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M8 2V6M16 2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M3 10H21" stroke="currentColor" strokeWidth="1.5"/>
+              </svg>
+            </div>
+            <p>No courts available</p>
+            <p className="empty-subtext">Create your first court to get started</p>
+          </div>
+        )}
       </div>
     </Layout>
   );

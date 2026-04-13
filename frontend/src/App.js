@@ -26,7 +26,7 @@ import ManagerTeams from './components/ManagerPages/ManagerTeams';
 import ManagerPlayers from './components/ManagerPages/ManagerPlayers';
 import AdminPanel from './components/AdminPanel';
 import ManagerProfile from './components/ManagerPages/ManagerProfile';
-
+import ManagerBookings from './components/ManagerPages/ManagerBookings';
 function App() {
   return (
     <Router>
@@ -66,7 +66,7 @@ function App() {
           <Route path="/manager-teams" element={<ProtectedRoute><ManagerTeams /></ProtectedRoute>} />
           <Route path="/manager-players" element={<ProtectedRoute><ManagerPlayers /></ProtectedRoute>} />
           <Route path="/manager-profile" element={<ProtectedRoute><ManagerProfile /></ProtectedRoute>} />
-          
+          <Route path="/manager-bookings" element={<ProtectedRoute><ManagerBookings /></ProtectedRoute>} />
           {/* Admin routes (protected) */}
           <Route path="/admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
           

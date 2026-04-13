@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, getAuthToken } from '../../services/api';
+import { api, getAuthToken, apiFetch } from '../../services/api';
 import Layout from '../Layout';
 import './Profile.css';
 
@@ -13,6 +13,19 @@ const Profile = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+  
+  // Show/hide password states
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
   
   const [profileData, setProfileData] = useState({
     fullName: '',
@@ -61,12 +74,10 @@ const Profile = () => {
           return;
         }
         
-        // Fetch user data from backend ONLY
         const userResponse = await api.getMe();
         const currentUser = userResponse.user || userResponse;
         setUser(currentUser);
         
-        // REMOVED: localStorage fallback - always use backend data
         setProfileData({
           fullName: currentUser.profile?.fullName || currentUser.username || '',
           email: currentUser.email || '',
@@ -81,7 +92,6 @@ const Profile = () => {
           }) : 'N/A'
         });
         
-        // Fetch bookings stats and activity
         try {
           const bookingsResponse = await api.getBookings(1, 100, 'all');
           
@@ -142,7 +152,6 @@ const Profile = () => {
           // Silently handle booking error
         }
         
-        // Fetch teams count
         try {
           const teamsResponse = await api.getUserTeams();
           if (teamsResponse && teamsResponse.data) {
@@ -155,7 +164,6 @@ const Profile = () => {
           // Silently handle teams error
         }
         
-        // Load settings
         const savedSettings = localStorage.getItem('userSettings');
         if (savedSettings) {
           setSettings(JSON.parse(savedSettings));
@@ -180,6 +188,11 @@ const Profile = () => {
     setProfileData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleSettingChange = (setting) => {
     setSettings(prev => {
       const newSettings = { ...prev, [setting]: !prev[setting] };
@@ -201,19 +214,16 @@ const Profile = () => {
         favoriteTeam: profileData.favoriteTeam
       };
       
-      // REMOVED: Saving to localStorage - only save to backend
       const response = await api.updateProfile(updateData);
       
       if (response && response.success) {
         alert('Profile updated successfully!');
         setIsEditing(false);
         
-        // Refresh user data from backend
         const userResponse = await api.getMe();
         const currentUser = userResponse.user || userResponse;
         setUser(currentUser);
         
-        // Update profile data from backend response
         setProfileData({
           fullName: currentUser.profile?.fullName || currentUser.username || '',
           email: currentUser.email || '',
@@ -236,8 +246,55 @@ const Profile = () => {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      alert('Please fill in all password fields');
+      return;
+    }
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert('New passwords do not match');
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 6) {
+      alert('New password must be at least 6 characters');
+      return;
+    }
+    
+    setUpdatingPassword(true);
+    try {
+      const response = await apiFetch('/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+          confirmPassword: passwordData.confirmPassword
+        })
+      });
+      
+      if (response && response.success) {
+        alert('Password changed successfully!');
+        setShowPasswordModal(false);
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setShowCurrentPassword(false);
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
+      } else {
+        throw new Error(response?.message || 'Failed to change password');
+      }
+    } catch (error) {
+      alert(error.message || 'Failed to change password. Please check your current password.');
+    } finally {
+      setUpdatingPassword(false);
+    }
+  };
+
   const handleCancelEdit = () => {
-    // Reset to original data from user state (backend data)
     setProfileData({
       fullName: user?.profile?.fullName || user?.username || '',
       email: user?.email || '',
@@ -260,16 +317,22 @@ const Profile = () => {
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
-      // Clear all localStorage data
-      localStorage.removeItem('token');
-      localStorage.removeItem('futsalUser');
-      localStorage.removeItem('userSettings');
-      localStorage.removeItem('userProfileData');
+      const response = await apiFetch('/users/me', {
+        method: 'DELETE'
+      });
       
-      alert('Your account has been deleted successfully.');
-      navigate('/login');
+      if (response && response.success) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('futsalUser');
+        localStorage.removeItem('userSettings');
+        localStorage.removeItem('userProfileData');
+        alert('Your account has been deleted successfully.');
+        navigate('/login');
+      } else {
+        throw new Error(response?.message || 'Failed to delete account');
+      }
     } catch (error) {
-      alert('Failed to delete account. Please try again.');
+      alert(error.message || 'Failed to delete account. Please contact support.');
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
@@ -526,6 +589,7 @@ const Profile = () => {
               {activeTab === 'settings' && (
                 <div className="settings-content">
                   <h3>Account Settings</h3>
+                  
                   <div className="settings-list">
                     <div className="setting-item">
                       <span className="setting-label">Email Notifications</span>
@@ -550,12 +614,21 @@ const Profile = () => {
                       </label>
                     </div>
                   </div>
+
+                  <div className="security-section">
+                    <h4>Security</h4>
+                    <p className="security-description">Update your password to keep your account secure.</p>
+                    <button className="change-password-btn" onClick={() => setShowPasswordModal(true)}>
+                      Change Password
+                    </button>
+                  </div>
+
                   <div className="danger-zone">
                     <h4>Danger Zone</h4>
                     <button className="danger-btn" onClick={() => setShowDeleteModal(true)}>
                       Delete Account
                     </button>
-                    <p className="danger-note">Once you delete your account, there is no going back.</p>
+                    <p className="danger-note">Once you delete your account, there is no going back. All your data will be permanently removed.</p>
                   </div>
                 </div>
               )}
@@ -563,6 +636,116 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal with Show/Hide Toggle */}
+      {showPasswordModal && (
+        <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
+          <div className="password-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Change Password</h3>
+              <button className="close-modal" onClick={() => setShowPasswordModal(false)}>×</button>
+            </div>
+            <div className="modal-content">
+              <div className="form-group">
+                <label>Current Password</label>
+                <div className="password-input-wrapper">
+                  <input 
+                    type={showCurrentPassword ? "text" : "password"}
+                    name="currentPassword"
+                    value={passwordData.currentPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Enter your current password"
+                  />
+                  <button 
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  >
+                    {showCurrentPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#64748b" strokeWidth="1.5"/>
+                        <circle cx="12" cy="12" r="3" stroke="#64748b" strokeWidth="1.5"/>
+                        <path d="M20 4L4 20" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#64748b" strokeWidth="1.5"/>
+                        <circle cx="12" cy="12" r="3" stroke="#64748b" strokeWidth="1.5"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>New Password</label>
+                <div className="password-input-wrapper">
+                  <input 
+                    type={showNewPassword ? "text" : "password"}
+                    name="newPassword"
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Enter new password (min 6 characters)"
+                  />
+                  <button 
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#64748b" strokeWidth="1.5"/>
+                        <circle cx="12" cy="12" r="3" stroke="#64748b" strokeWidth="1.5"/>
+                        <path d="M20 4L4 20" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#64748b" strokeWidth="1.5"/>
+                        <circle cx="12" cy="12" r="3" stroke="#64748b" strokeWidth="1.5"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Confirm New Password</label>
+                <div className="password-input-wrapper">
+                  <input 
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={passwordData.confirmPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Confirm your new password"
+                  />
+                  <button 
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#64748b" strokeWidth="1.5"/>
+                        <circle cx="12" cy="12" r="3" stroke="#64748b" strokeWidth="1.5"/>
+                        <path d="M20 4L4 20" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#64748b" strokeWidth="1.5"/>
+                        <circle cx="12" cy="12" r="3" stroke="#64748b" strokeWidth="1.5"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button className="cancel-btn" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+              <button className="confirm-btn" onClick={handleChangePassword} disabled={updatingPassword}>
+                {updatingPassword ? 'Changing...' : 'Change Password'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteModal && (
@@ -574,9 +757,13 @@ const Profile = () => {
             </div>
             <div className="modal-content">
               <div className="delete-warning">
-                <div className="warning-icon">⚠️</div>
+                <div className="warning-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 8V12M12 16H12.01M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </div>
                 <p>Are you sure you want to delete your account?</p>
-                <p className="warning-text">This action cannot be undone.</p>
+                <p className="warning-text">This action cannot be undone. All your data will be permanently removed.</p>
               </div>
             </div>
             <div className="modal-actions">

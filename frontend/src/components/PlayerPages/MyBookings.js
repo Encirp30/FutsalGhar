@@ -149,10 +149,9 @@ const MyBookings = () => {
     }
   };
 
-  // NEW: Handle Reschedule
+  // Handle Reschedule
   const handleOpenReschedule = (booking) => {
     setRescheduleBooking(booking);
-    // Set default date to current booking date
     const currentDate = new Date(booking.date);
     const formattedDate = currentDate.toISOString().split('T')[0];
     setNewDate(formattedDate);
@@ -189,7 +188,6 @@ const MyBookings = () => {
       return;
     }
 
-    // Check if slot is available
     const isSlotBooked = availableSlots.some(
       slot => slot.startTime === newStartTime && slot.endTime === newEndTime
     );
@@ -267,7 +265,6 @@ const MyBookings = () => {
 
   const timeSlots = generateTimeSlots();
 
-  // Check if a time slot is available
   const isSlotAvailable = (startTime, endTime) => {
     return !availableSlots.some(slot => slot.startTime === startTime && slot.endTime === endTime);
   };
@@ -288,34 +285,59 @@ const MyBookings = () => {
     <Layout activePage="bookings">
       <main className="dashboard-content">
         <div className="my-bookings-wrapper">         
+          {/* Stats Section */}
           <div className="stats-section">
             <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-icon total"><span>📋</span></div>
-                <div className="stat-content">
+              <div className="stat-card-modern total-card">
+                <div className="stat-icon-modern">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 6H21V19H3V6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 6V4H16V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 11V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M9 13H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div className="stat-content-modern">
+                  <span className="stat-label-modern">Total Bookings</span>
                   <h3>{globalStats.total}</h3>
-                  <p>Total Bookings</p>
                 </div>
               </div>
-              <div className="stat-card">
-                <div className="stat-icon upcoming"><span>⏳</span></div>
-                <div className="stat-content">
+              
+              <div className="stat-card-modern upcoming-card">
+                <div className="stat-icon-modern">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M12 8V12L14 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div className="stat-content-modern">
+                  <span className="stat-label-modern">Upcoming</span>
                   <h3>{globalStats.upcoming}</h3>
-                  <p>Upcoming</p>
                 </div>
               </div>
-              <div className="stat-card">
-                <div className="stat-icon completed"><span>✅</span></div>
-                <div className="stat-content">
+              
+              <div className="stat-card-modern completed-card">
+                <div className="stat-icon-modern">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="stat-content-modern">
+                  <span className="stat-label-modern">Completed</span>
                   <h3>{globalStats.completed}</h3>
-                  <p>Completed</p>
                 </div>
               </div>
-              <div className="stat-card">
-                <div className="stat-icon cancelled"><span>❌</span></div>
-                <div className="stat-content">
+              
+              <div className="stat-card-modern cancelled-card">
+                <div className="stat-icon-modern">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div className="stat-content-modern">
+                  <span className="stat-label-modern">Cancelled</span>
                   <h3>{globalStats.cancelled}</h3>
-                  <p>Cancelled</p>
                 </div>
               </div>
             </div>

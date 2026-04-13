@@ -31,6 +31,8 @@
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  background: linear-gradient(135deg, #f5f7fa 0%, #f0f2f5 100%);
+  min-height: calc(100vh - 200px);
 }
 
 /* Welcome Section */
@@ -42,15 +44,17 @@
   margin-bottom: 35px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .welcome-section::before {
-  content: '⚽';
+  content: '';
   position: absolute;
-  bottom: -20px;
-  right: -20px;
-  font-size: 120px;
-  opacity: 0.05;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -60,6 +64,8 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .welcome-section h2 {
@@ -92,6 +98,122 @@
   font-size: 12px;
   opacity: 0.7;
 }
+
+/* Statistics Section - Modern Cards */
+.stats-section {
+  margin-bottom: 35px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card-modern {
+  background: white;
+  border-radius: 20px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card-modern:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card-modern.total-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  border-left: 4px solid #3b82f6;
+}
+
+.stat-card-modern.upcoming-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+  border-left: 4px solid #f59e0b;
+}
+
+.stat-card-modern.completed-card {
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+  border-left: 4px solid #10b981;
+}
+
+.stat-card-modern.cancelled-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+  border-left: 4px solid #ef4444;
+}
+
+.stat-icon-modern {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.total-card .stat-icon-modern {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.upcoming-card .stat-icon-modern {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.completed-card .stat-icon-modern {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.cancelled-card .stat-icon-modern {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.stat-content-modern {
+  flex: 1;
+}
+
+.stat-label-modern {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.stat-content-modern h3 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+.total-card .stat-content-modern h3 { color: #1e40af; }
+.upcoming-card .stat-content-modern h3 { color: #b45309; }
+.completed-card .stat-content-modern h3 { color: #065f46; }
+.cancelled-card .stat-content-modern h3 { color: #b91c1c; }
 
 /* Section Header */
 .section-header {
@@ -131,70 +253,6 @@
   background: #eff6ff;
 }
 
-/* Statistics Section */
-.stats-section {
-  margin-bottom: 35px;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-@media (max-width: 1024px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.stat-card {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s;
-  border-left: 4px solid;
-  border-left-color: inherit;
-}
-
-.stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.stat-icon {
-  width: 55px;
-  height: 55px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-}
-
-.stat-content h4 {
-  font-size: 26px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 5px 0;
-}
-
-.stat-content p {
-  font-size: 13px;
-  color: #64748b;
-  margin: 0;
-}
-
 /* Content Grid Layout */
 .content-grid {
   display: grid;
@@ -209,12 +267,13 @@
   }
 }
 
-/* Popular Courts Section */
+/* Popular Courts Section - Professional */
 .popular-courts-section {
   background: white;
   border-radius: 20px;
   padding: 25px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .popular-courts-list {
@@ -228,17 +287,17 @@
   align-items: center;
   gap: 15px;
   padding: 15px;
-  border: 1px solid #e2e8f0;
+  background: #fafbfc;
   border-radius: 14px;
   transition: all 0.3s;
-  background: white;
-  position: relative;
+  border: 1px solid #eef2f6;
 }
 
 .popular-court-card:hover {
   border-color: #3b82f6;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
   transform: translateX(5px);
+  background: white;
 }
 
 .court-rank {
@@ -259,7 +318,7 @@
   flex: 1;
 }
 
-.court-info h4 {
+.court-name {
   font-size: 16px;
   font-weight: 600;
   color: #1e293b;
@@ -296,6 +355,10 @@
   color: #64748b;
 }
 
+.court-location svg {
+  flex-shrink: 0;
+}
+
 .court-stats {
   text-align: right;
   min-width: 100px;
@@ -309,12 +372,12 @@
   display: block;
   font-size: 20px;
   font-weight: 700;
-  color: #f59e0b;
+  color: #3b82f6;
 }
 
 .count-label {
   font-size: 10px;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .book-court-btn {
@@ -340,12 +403,13 @@
   padding: 40px 20px;
 }
 
-/* Quick Actions Section */
+/* Quick Actions Section - No Emojis */
 .actions-section {
   background: white;
   border-radius: 20px;
   padding: 25px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .actions-grid {
@@ -361,10 +425,10 @@
 }
 
 .action-card {
-  background: white;
-  border: 2px solid #e2e8f0;
+  background: #fafbfc;
+  border: 1px solid #eef2f6;
   border-radius: 14px;
-  padding: 18px;
+  padding: 16px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
@@ -372,27 +436,135 @@
 }
 
 .action-card:hover {
-  border-color: var(--action-color, #3b82f6);
+  border-color: #3b82f6;
   transform: translateY(-4px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  background: white;
 }
 
 .action-icon {
-  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 12px;
+  color: #3b82f6;
 }
 
 .action-card h4 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #1e293b;
   margin: 0 0 6px 0;
 }
 
 .action-card p {
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
   margin: 0;
+}
+
+/* About Section - Larger */
+.about-section {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 24px;
+  padding: 45px 40px;
+  margin-bottom: 35px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.about-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.about-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 40px;
+  position: relative;
+  z-index: 1;
+}
+
+.about-text {
+  flex: 2;
+}
+
+.about-text h3 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.about-text p {
+  font-size: 15px;
+  line-height: 1.7;
+  opacity: 0.85;
+  margin-bottom: 20px;
+}
+
+.about-features {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+  margin-top: 25px;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 20px;
+  border-radius: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+
+.feature svg {
+  width: 18px;
+  height: 18px;
+  color: #3b82f6;
+}
+
+.about-stats {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 25px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.about-stat {
+  text-align: center;
+}
+
+.about-stat-number {
+  display: block;
+  font-size: 32px;
+  font-weight: 800;
+  color: #3b82f6;
+  margin-bottom: 8px;
+}
+
+.about-stat-label {
+  font-size: 12px;
+  opacity: 0.8;
+  letter-spacing: 0.5px;
 }
 
 /* Activity Timeline Section */
@@ -400,7 +572,8 @@
   background: white;
   border-radius: 20px;
   padding: 25px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .activity-timeline {
@@ -425,13 +598,15 @@
   gap: 15px;
   margin-bottom: 25px;
   padding: 10px;
-  background: #f8fafc;
+  background: #fafbfc;
   border-radius: 12px;
   transition: all 0.3s;
+  border: 1px solid #eef2f6;
 }
 
 .timeline-item:hover {
-  background: #f1f5f9;
+  background: white;
+  border-color: #e2e8f0;
   transform: translateX(5px);
 }
 
@@ -442,7 +617,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
   flex-shrink: 0;
 }
 
@@ -521,37 +695,6 @@
   background: #2563eb;
 }
 
-/* Status Badge */
-.status-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.status-badge.confirmed {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status-badge.cancelled {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.status-badge.completed {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-/* No Data Text */
-.no-data {
-  text-align: center;
-  padding: 30px;
-  color: #64748b;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .dashboard-content {
@@ -617,17 +760,37 @@
   .timeline-dot {
     left: -14px;
   }
+  
+  .about-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .about-features {
+    justify-content: center;
+  }
+  
+  .about-stats {
+    width: 100%;
+  }
+  
+  .about-section {
+    padding: 30px 25px;
+  }
+  
+  .about-text h3 {
+    font-size: 24px;
+  }
 }
 
 @media (max-width: 480px) {
-  .stat-content h4 {
-    font-size: 20px;
+  .stat-content-modern h3 {
+    font-size: 24px;
   }
   
-  .stat-icon {
-    width: 45px;
-    height: 45px;
-    font-size: 24px;
+  .stat-icon-modern {
+    width: 40px;
+    height: 40px;
   }
   
   .court-meta {
@@ -638,5 +801,20 @@
   .court-type, .court-price {
     display: inline-block;
     width: fit-content;
+  }
+  
+  .about-stat-number {
+    font-size: 24px;
+  }
+  
+  .about-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    padding: 20px;
+  }
+  
+  .feature {
+    padding: 6px 14px;
+    font-size: 12px;
   }
 }

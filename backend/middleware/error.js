@@ -8,6 +8,9 @@ class ApiError extends Error {
 
 // Error handler middleware
 const errorHandler = (err, req, res, next) => {
+  console.error('Error handler caught:', err);
+  console.error('Error stack:', err.stack);
+  
   const error = { ...err };
   error.message = err.message;
 

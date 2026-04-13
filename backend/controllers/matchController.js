@@ -32,7 +32,7 @@ exports.createMatch = async (req, res) => {
       });
     }
 
-    // ✅ ADDED: Notify both teams about scheduled match
+    // Notify both teams about scheduled match
     try {
       const teamAData = await Team.findById(teamA).populate('captain');
       const teamBData = await Team.findById(teamB).populate('captain');
@@ -195,29 +195,35 @@ exports.updateMatchResult = async (req, res) => {
     const teamA = await Team.findById(match.teamA);
     const teamB = await Team.findById(match.teamB);
 
-    teamA.totalMatches += 1;
-    teamB.totalMatches += 1;
-
-    if (teamAScore > teamBScore) {
-      teamA.wins += 1;
-      teamB.losses += 1;
-    } else if (teamBScore > teamAScore) {
-      teamB.wins += 1;
-      teamA.losses += 1;
-    } else {
-      teamA.draws += 1;
-      teamB.draws += 1;
+    if (teamA) {
+      teamA.totalMatches += 1;
+      if (teamAScore > teamBScore) {
+        teamA.wins += 1;
+      } else if (teamAScore < teamBScore) {
+        teamA.losses += 1;
+      } else {
+        teamA.draws += 1;
+      }
+      teamA.goalsFor += teamAScore;
+      teamA.goalsAgainst += teamBScore;
+      await teamA.save();
     }
 
-    teamA.goalsFor += teamAScore;
-    teamA.goalsAgainst += teamBScore;
-    teamB.goalsFor += teamBScore;
-    teamB.goalsAgainst += teamAScore;
+    if (teamB) {
+      teamB.totalMatches += 1;
+      if (teamBScore > teamAScore) {
+        teamB.wins += 1;
+      } else if (teamBScore < teamAScore) {
+        teamB.losses += 1;
+      } else {
+        teamB.draws += 1;
+      }
+      teamB.goalsFor += teamBScore;
+      teamB.goalsAgainst += teamAScore;
+      await teamB.save();
+    }
 
-    await teamA.save();
-    await teamB.save();
-
-    // ✅ ADDED: Notify both teams about match result
+    // Notify both teams about match result
     try {
       const winner = teamAScore > teamBScore ? teamA : (teamBScore > teamAScore ? teamB : null);
       const resultMessage = winner 
@@ -327,13 +333,13 @@ exports.getPlayerStatistics = async (req, res) => {
 
     matches.forEach(match => {
       // Count goals
-      stats.goals += match.goalScorers.filter(g => g.player.toString() === playerId).length;
+      stats.goals += match.goalScorers.filter(g => g.player?.toString() === playerId).length;
 
       // Count assists
       stats.assists += match.goalScorers.filter(a => a.assistBy?.toString() === playerId).length;
 
       // Count cards
-      const playerCards = match.cards.filter(c => c.player.toString() === playerId);
+      const playerCards = match.cards.filter(c => c.player?.toString() === playerId);
       stats.yellowCards += playerCards.filter(c => c.cardType === 'yellow').length;
       stats.redCards += playerCards.filter(c => c.cardType === 'red').length;
 
@@ -343,7 +349,7 @@ exports.getPlayerStatistics = async (req, res) => {
       }
 
       // Get ratings
-      const rating = match.playerRatings.find(r => r.player.toString() === playerId);
+      const rating = match.playerRatings.find(r => r.player?.toString() === playerId);
       if (rating) {
         totalRating += rating.rating;
         ratingCount += 1;
@@ -359,6 +365,42 @@ exports.getPlayerStatistics = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Delete match (for managers/admins)
+exports.deleteMatch = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const match = await Match.findById(id);
+    
+    if (!match) {
+      return res.status(404).json({
+        success: false,
+        message: 'Match not found'
+      });
+    }
+    
+    // Remove match from tournament's matches array
+    if (match.tournament) {
+      await Tournament.findByIdAndUpdate(match.tournament, {
+        $pull: { matches: match._id }
+      });
+    }
+    
+    await match.deleteOne();
+    
+    return res.json({
+      success: true,
+      message: 'Match deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete match error:', error);
+    return res.status(500).json({
       success: false,
       message: error.message
     });
