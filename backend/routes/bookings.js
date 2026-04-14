@@ -1,5 +1,5 @@
 const express = require('express');
-const { auth } = require('../middleware/auth');
+const { auth, authorize } = require('../middleware/auth');
 const bookingController = require('../controllers/bookingController');
 
 const router = express.Router();
@@ -14,5 +14,8 @@ router.get('/:id', auth, bookingController.getBookingById);
 router.put('/:id/cancel', auth, bookingController.cancelBooking);
 router.put('/:id/reschedule', auth, bookingController.rescheduleBooking);
 router.post('/:id/review', auth, bookingController.addReview);
+
+// Update payment status (admin only)
+router.put('/:id/payment-status', auth, authorize('admin'), bookingController.updatePaymentStatus);
 
 module.exports = router;

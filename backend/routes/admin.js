@@ -13,11 +13,15 @@ router.get('/users', adminController.getAllUsers);
 router.put('/users/:id/role', adminController.updateUserRole);
 router.put('/users/:id/disable', adminController.disableUser);
 router.put('/users/:id/enable', adminController.enableUser);
+router.delete('/users/:id', adminController.deleteUser);
 
 // Court management
 router.get('/courts', adminController.getAllCourts);
 router.delete('/courts/:id', adminController.deleteCourt);
 router.post('/courts/assign', adminController.assignCourtToManager);
+
+// Booking management
+router.get('/bookings', adminController.getAllBookings);
 
 // System statistics
 router.get('/statistics', adminController.getSystemStatistics);

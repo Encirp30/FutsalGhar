@@ -121,7 +121,7 @@ exports.createBooking = async (req, res) => {
       }
     });
 
-    // ✅ NEW: Notify court owner (manager) about new booking
+    // Notify court owner (manager) about new booking
     try {
       await Notification.create({
         user: court.owner,
@@ -319,7 +319,7 @@ exports.cancelBooking = async (req, res) => {
       }
     });
 
-    // ✅ NEW: Notify court owner (manager) about cancelled booking
+    // Notify court owner (manager) about cancelled booking
     try {
       await Notification.create({
         user: booking.court.owner,
@@ -570,6 +570,40 @@ exports.getBookedSlots = async (req, res) => {
       bookedSlots
     });
   } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// ========== UPDATE PAYMENT STATUS (ADMIN ONLY) ==========
+// Update booking payment status
+exports.updatePaymentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentStatus } = req.body;
+
+    const booking = await Booking.findById(id);
+    
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    booking.paymentStatus = paymentStatus;
+    booking.updatedAt = Date.now();
+    await booking.save();
+
+    res.json({
+      success: true,
+      message: 'Payment status updated successfully',
+      booking
+    });
+  } catch (error) {
+    console.error('Update payment status error:', error);
     res.status(500).json({
       success: false,
       message: error.message

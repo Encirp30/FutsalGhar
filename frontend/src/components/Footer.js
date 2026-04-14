@@ -23,22 +23,24 @@ const Footer = () => {
 
   // Get quick links based on role
   const getQuickLinks = () => {
-    // Admin quick links
+    // Admin quick links - FIXED: Removed Manager Dashboard, added Tournaments and Matches
     if (userRole === 'admin') {
       return [
         { label: 'Admin Panel', path: '/admin-panel' },
-        { label: 'Manager Dashboard', path: '/manager-dashboard' },
         { label: 'Courts', path: '/manager-courts' },
         { label: 'Teams', path: '/manager-teams' },
         { label: 'Players', path: '/manager-players' },
+        { label: 'Tournaments', path: '/tournaments' },
+        { label: 'Matches', path: '/matches' },
         { label: 'Profile', path: '/manager-profile' }
       ];
     }
     
-    // Manager quick links
+    // Manager quick links - FIXED: Added Bookings
     if (userRole === 'manager') {
       return [
         { label: 'Dashboard', path: '/manager-dashboard' },
+        { label: 'Bookings', path: '/manager-bookings' },
         { label: 'My Courts', path: '/manager-courts' },
         { label: 'Teams', path: '/manager-teams' },
         { label: 'Players', path: '/manager-players' },
@@ -48,7 +50,7 @@ const Footer = () => {
       ];
     }
     
-    // Player quick links - ADDED "Manage My Teams"
+    // Player quick links
     return [
       { label: 'Dashboard', path: '/dashboard' },
       { label: 'My Bookings', path: '/my-bookings' },
@@ -119,7 +121,7 @@ const Footer = () => {
                 <button onClick={() => alert('FAQ coming soon!')} style={styles.footerLink}>FAQ</button>
               </li>
               <li style={styles.listItem}>
-                <button onClick={() => alert('Contact Us: support@futsalpro.com')} style={styles.footerLink}>Contact Us</button>
+                <button onClick={() => alert('Contact Us: support@futsalghar.com')} style={styles.footerLink}>Contact Us</button>
               </li>
               <li style={styles.listItem}>
                 <button onClick={() => alert('Customer Support: +977 9800000000')} style={styles.footerLink}>Customer Support</button>
@@ -160,7 +162,7 @@ const Footer = () => {
               </div>
               <div style={styles.contactItem}>
                 <span style={styles.contactIcon}>✉️</span>
-                <span>support@futsalpro.com</span>
+                <span>support@futsalghar.com</span>
               </div>
             </div>
           </div>
@@ -227,7 +229,7 @@ const Footer = () => {
   );
 };
 
-// Inline CSS Styles - Fixed (removed invalid @media queries)
+// Inline CSS Styles
 const styles = {
   dashboardFooter: {
     background: '#1e293b',

@@ -431,3 +431,96 @@ exports.getRevenueReport = async (req, res) => {
     });
   }
 };
+
+// ========== DELETE USER (ADMIN ONLY) ==========
+// Delete user account - Admin only
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Prevent admin from deleting themselves
+    if (user._id.toString() === req.userId.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot delete your own account'
+      });
+    }
+    
+    await user.deleteOne();
+    
+    res.json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// ========== GET ALL BOOKINGS (ADMIN ONLY) ==========
+// Get all bookings across all courts
+exports.getAllBookings = async (req, res) => {
+  try {
+    const { status, page = 1, limit = 10 } = req.query;
+
+    let filter = {};
+
+    if (status && status !== 'all') {
+      if (status === 'upcoming') {
+        filter.date = { $gte: new Date() };
+        filter.status = { $ne: 'cancelled' };
+      } else if (status === 'completed') {
+        filter.status = 'completed';
+      } else if (status === 'cancelled') {
+        filter.status = 'cancelled';
+      }
+    }
+
+    const skip = (page - 1) * limit;
+
+    const bookings = await Booking.find(filter)
+      .populate('court', 'name location')
+      .populate('player', 'username email profile.fullName')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Booking.countDocuments(filter);
+
+    // Calculate total revenue from completed bookings
+    const totalRevenue = await Booking.aggregate([
+      { $match: { paymentStatus: 'completed' } },
+      { $group: { _id: null, total: { $sum: '$totalCost' } } }
+    ]);
+
+    res.json({
+      success: true,
+      bookings,
+      totalRevenue: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: parseInt(page)
+      }
+    });
+  } catch (error) {
+    console.error('Get all bookings error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

@@ -39,12 +39,42 @@ const AdminPanel = () => {
   const [usersLoading, setUsersLoading] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   
+  // Bookings state
+  const [bookings, setBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingFilter, setBookingFilter] = useState('all');
+  const [bookingSearch, setBookingSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalBookingsCount, setTotalBookingsCount] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  
   // Fetch system statistics
   const fetchStats = async () => {
     try {
+      // Get user stats from admin/statistics
       const response = await apiFetch('/admin/statistics');
       if (response && response.statistics) {
-        setStats(response.statistics);
+        setStats(prev => ({
+          ...prev,
+          totalUsers: response.statistics.totalUsers || 0,
+          totalManagers: response.statistics.totalManagers || 0,
+          totalPlayers: response.statistics.totalPlayers || 0,
+          totalCourts: response.statistics.totalCourts || 0,
+          totalTournaments: response.statistics.totalTournaments || 0
+        }));
+      }
+      
+      // Get booking stats from admin/bookings API
+      const bookingsResponse = await apiFetch('/admin/bookings?limit=1');
+      if (bookingsResponse && bookingsResponse.pagination) {
+        setStats(prev => ({
+          ...prev,
+          totalBookings: bookingsResponse.pagination.total || 0,
+          totalRevenue: bookingsResponse.totalRevenue || 0
+        }));
+        setTotalBookingsCount(bookingsResponse.pagination.total || 0);
+        setTotalRevenue(bookingsResponse.totalRevenue || 0);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -78,6 +108,28 @@ const AdminPanel = () => {
       console.error('Error fetching users:', error);
     } finally {
       setUsersLoading(false);
+    }
+  };
+  
+  // Fetch all bookings
+  const fetchBookings = async () => {
+    setBookingsLoading(true);
+    try {
+      let url = `/admin/bookings?page=${currentPage}&limit=10`;
+      if (bookingFilter !== 'all') {
+        url += `&status=${bookingFilter}`;
+      }
+      const response = await apiFetch(url);
+      if (response && response.success) {
+        setBookings(response.bookings || []);
+        setTotalPages(response.pagination?.pages || 1);
+        setTotalBookingsCount(response.pagination?.total || 0);
+        setTotalRevenue(response.totalRevenue || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setBookingsLoading(false);
     }
   };
   
@@ -115,6 +167,13 @@ const AdminPanel = () => {
     
     fetchAdminData();
   }, [navigate]);
+  
+  // Fetch bookings when tab or filter changes
+  useEffect(() => {
+    if (activeTab === 'bookings') {
+      fetchBookings();
+    }
+  }, [activeTab, bookingFilter, currentPage]);
   
   const handleAddManager = async (e) => {
     e.preventDefault();
@@ -178,7 +237,7 @@ const AdminPanel = () => {
     }
     
     try {
-      const response = await apiFetch(`/users/${managerId}`, { method: 'DELETE' });
+      const response = await apiFetch(`/admin/users/${managerId}`, { method: 'DELETE' });
       if (response && response.success) {
         alert('Manager deleted successfully!');
         await fetchManagers();
@@ -195,6 +254,37 @@ const AdminPanel = () => {
     const { name, value } = e.target;
     setNewManagerData(prev => ({ ...prev, [name]: value }));
   };
+  
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+  
+  const getStatusBadge = (booking) => {
+    const status = booking.status;
+    if (status === 'cancelled') {
+      return <span className="status-badge cancelled">Cancelled</span>;
+    }
+    if (status === 'completed') {
+      return <span className="status-badge completed">Completed</span>;
+    }
+    if (status === 'confirmed') {
+      return <span className="status-badge upcoming">Confirmed</span>;
+    }
+    return <span className="status-badge pending">Pending</span>;
+  };
+  
+  const filteredBookings = bookings.filter(booking => {
+    const searchLower = bookingSearch.toLowerCase();
+    const courtName = booking.court?.name?.toLowerCase() || '';
+    const playerName = booking.player?.username?.toLowerCase() || '';
+    return !bookingSearch || courtName.includes(searchLower) || playerName.includes(searchLower);
+  });
   
   const filteredUsers = users.filter(u =>
     u.username?.toLowerCase().includes(userSearch.toLowerCase()) ||
@@ -222,16 +312,25 @@ const AdminPanel = () => {
             Overview
           </button>
           <button 
+            className={`admin-tab ${activeTab === 'bookings' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('bookings');
+              setCurrentPage(1);
+            }}
+          >
+            Bookings ({totalBookingsCount})
+          </button>
+          <button 
             className={`admin-tab ${activeTab === 'managers' ? 'active' : ''}`}
             onClick={() => setActiveTab('managers')}
           >
-            Managers
+            Managers ({managers.length})
           </button>
           <button 
             className={`admin-tab ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
-            Users
+            Users ({users.length})
           </button>
         </div>
         
@@ -297,6 +396,107 @@ const AdminPanel = () => {
             </div>
           )}
           
+          {/* Bookings Tab */}
+          {activeTab === 'bookings' && (
+            <div className="bookings-tab">
+              <div className="filter-section">
+                <div className="filter-tabs">
+                  <button className={`filter-tab ${bookingFilter === 'all' ? 'active' : ''}`} onClick={() => { setBookingFilter('all'); setCurrentPage(1); }}>
+                    All ({totalBookingsCount})
+                  </button>
+                  <button className={`filter-tab ${bookingFilter === 'upcoming' ? 'active' : ''}`} onClick={() => { setBookingFilter('upcoming'); setCurrentPage(1); }}>
+                    Upcoming
+                  </button>
+                  <button className={`filter-tab ${bookingFilter === 'completed' ? 'active' : ''}`} onClick={() => { setBookingFilter('completed'); setCurrentPage(1); }}>
+                    Completed
+                  </button>
+                  <button className={`filter-tab ${bookingFilter === 'cancelled' ? 'active' : ''}`} onClick={() => { setBookingFilter('cancelled'); setCurrentPage(1); }}>
+                    Cancelled
+                  </button>
+                </div>
+                
+                <div className="search-wrapper">
+                  <input
+                    type="text"
+                    placeholder="Search by court or player..."
+                    value={bookingSearch}
+                    onChange={(e) => setBookingSearch(e.target.value)}
+                    className="search-input"
+                  />
+                </div>
+              </div>
+              
+              <div className="bookings-table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Court</th>
+                      <th>Player</th>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookingsLoading ? (
+                      <tr>
+                        <td colSpan="6" className="loading-cell">
+                          <div className="loading-spinner-small"></div>
+                          <p>Loading bookings...</p>
+                        </td>
+                      </tr>
+                    ) : filteredBookings.length > 0 ? (
+                      filteredBookings.map((booking) => (
+                        <tr key={booking._id}>
+                          <td className="court-name">{booking.court?.name || 'N/A'}</td>
+                          <td>
+                            <div className="player-info">
+                              <span className="player-name">{booking.player?.username || 'Guest'}</span>
+                              <span className="player-email">{booking.player?.email || ''}</span>
+                            </div>
+                          </td>
+                          <td>{formatDate(booking.date)}</td>
+                          <td>{booking.startTime} - {booking.endTime}</td>
+                          <td className="amount">Rs.{booking.totalCost || 0}</td>
+                          <td>{getStatusBadge(booking)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="no-data">
+                          <div className="empty-state-table">
+                            <p>No bookings found</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              
+              {totalPages > 1 && (
+                <div className="pagination-container">
+                  <button 
+                    className="page-nav-btn" 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </button>
+                  <span className="page-info">Page {currentPage} of {totalPages}</span>
+                  <button 
+                    className="page-nav-btn" 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          
           {/* Managers Tab */}
           {activeTab === 'managers' && (
             <div className="managers-tab">
@@ -330,23 +530,23 @@ const AdminPanel = () => {
                       {managers.map(manager => (
                         <tr key={manager._id}>
                           <td>{manager.username}</td>
-                           <td>{manager.email}</td>
-                           <td>{manager.profile?.fullName || '-'}</td>
-                           <td>{manager.profile?.phone || '-'}</td>
-                           <td>
+                          <td>{manager.email}</td>
+                          <td>{manager.profile?.fullName || '-'}</td>
+                          <td>{manager.profile?.phone || '-'}</td>
+                          <td>
                             <span className={`status-badge ${manager.isActive ? 'active' : 'inactive'}`}>
                               {manager.isActive ? 'Active' : 'Inactive'}
                             </span>
-                           </td>
-                           <td>
+                          </td>
+                          <td>
                             <button 
                               className="delete-btn"
                               onClick={() => handleDeleteManager(manager._id, manager.username)}
                             >
                               Delete
                             </button>
-                           </td>
-                         </tr>
+                          </td>
+                        </tr>
                       ))}
                     </tbody>
                   </table>
@@ -388,7 +588,7 @@ const AdminPanel = () => {
                         <th>Phone</th>
                         <th>Status</th>
                         <th>Actions</th>
-                       </tr>
+                      </tr>
                     </thead>
                     <tbody>
                       {filteredUsers.map(u => (

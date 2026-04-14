@@ -264,7 +264,6 @@ const Header = ({ activePage }) => {
         { key: 'managerPlayers', label: 'Players' },
         { key: 'tournaments', label: 'Tournaments' },
         { key: 'matches', label: 'Matches' },
-        { key: 'managerBookings', label: 'Bookings' },
         { key: 'managerProfile', label: 'Profile' }
       ];
     }
