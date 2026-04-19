@@ -427,11 +427,6 @@ exports.deleteTournament = async (req, res) => {
       });
     }
     
-    // Optional: Also delete associated matches? (commented out - decide if you want this)
-    // if (tournament.matches && tournament.matches.length > 0) {
-    //   await Match.deleteMany({ _id: { $in: tournament.matches } });
-    // }
-    
     await tournament.deleteOne();
     
     return res.json({

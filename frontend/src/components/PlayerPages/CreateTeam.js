@@ -64,7 +64,7 @@ const CreateTeam = () => {
         setPlayers(players.map(p => p.id === id ? { ...p, isActive: !p.isActive } : p));
     };
 
-    // FIXED: Now any team member in this list can be set as captain by the user
+    // Set captain by the user
     const handleSetCaptain = (id) => {
         setPlayers(players.map(p => ({ ...p, isCaptain: p.id === id })));
     };

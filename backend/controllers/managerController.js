@@ -215,7 +215,7 @@ exports.completeBooking = async (req, res) => {
   }
 };
 
-// Get manager revenue - FIXED
+// Get manager revenue 
 exports.getManagerRevenue = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;

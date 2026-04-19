@@ -238,7 +238,7 @@ exports.getUserTeams = async (req, res) => {
   }
 };
 
-// Send join request - FIXED
+// Send join request 
 exports.sendJoinRequest = async (req, res) => {
   try {
     const { id } = req.params;

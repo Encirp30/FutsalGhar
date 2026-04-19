@@ -150,7 +150,7 @@ exports.createBooking = async (req, res) => {
   }
 };
 
-// Get user's bookings - FIXED FOR FILTERS AND GLOBAL STATS
+// Get user's bookings
 exports.getUserBookings = async (req, res) => {
   try {
     const { status, page = 1, limit = 4 } = req.query;
