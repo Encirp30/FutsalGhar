@@ -27,6 +27,7 @@ const RegisterPage = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [otpError, setOtpError] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
 
   // State for error messages
   const [errors, setErrors] = useState({
@@ -34,6 +35,7 @@ const RegisterPage = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    otp: '',
     form: ''
   });
 
@@ -97,6 +99,8 @@ const RegisterPage = () => {
       setOtpSent(false);
       setOtpCode('');
       setOtpError('');
+      setOtpVerified(false);
+      setErrors(prev => ({ ...prev, otp: '' }));
     }
   };
 
@@ -110,56 +114,25 @@ const RegisterPage = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  // Send OTP to email
-  const handleSendOTP = async () => {
-    // Validate email first
+  // Validate ONLY email for sending OTP
+  const validateEmailOnly = () => {
+    let isValid = true;
+
     if (!formData.email.trim()) {
       setErrors(prev => ({ ...prev, email: 'Email is required' }));
-      return;
-    }
-    if (!validateEmail(formData.email)) {
+      isValid = false;
+    } else if (!validateEmail(formData.email)) {
       setErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
-      return;
-    }
-
-    setIsSendingOtp(true);
-    setOtpError('');
-    
-    try {
-      await api.sendOTP(formData.email);
-      setOtpSent(true);
+      isValid = false;
+    } else {
       setErrors(prev => ({ ...prev, email: '' }));
-    } catch (error) {
-      setOtpError(error.message || 'Failed to send OTP. Please try again.');
-    } finally {
-      setIsSendingOtp(false);
     }
+
+    return isValid;
   };
 
-  // Verify OTP
-  const handleVerifyOTP = async () => {
-    if (!otpCode || otpCode.length !== 4) {
-      setOtpError('Please enter a valid 4-digit OTP');
-      return;
-    }
-
-    setIsVerifying(true);
-    setOtpError('');
-    
-    try {
-      await api.verifyOTP(formData.email, otpCode);
-      setOtpError('');
-      // OTP verified successfully, proceed with registration
-      await handleSubmit();
-    } catch (error) {
-      setOtpError(error.message || 'Invalid or expired OTP');
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  // Validate entire form
-  const validateForm = () => {
+  // Validate ALL form fields for final submission
+  const validateAllFields = () => {
     const newErrors = {};
     let isValid = true;
 
@@ -205,13 +178,62 @@ const RegisterPage = () => {
       isValid = false;
     }
 
-    setErrors(newErrors);
+    // OTP verification check
+    if (!otpVerified) {
+      newErrors.otp = 'Please verify your email with OTP first';
+      isValid = false;
+    }
+
+    setErrors(prev => ({ ...prev, ...newErrors }));
     return isValid;
   };
 
-  // Handle form submission (after OTP verification)
-  const handleSubmit = async () => {
-    if (!validateForm()) {
+  // Send OTP to email (validate ONLY email)
+  const handleSendOTP = async () => {
+    // Only validate email
+    if (!validateEmailOnly()) {
+      return;
+    }
+
+    setIsSendingOtp(true);
+    setOtpError('');
+    setErrors(prev => ({ ...prev, otp: '' }));
+    
+    try {
+      await api.sendOTP(formData.email);
+      setOtpSent(true);
+    } catch (error) {
+      setErrors(prev => ({ ...prev, email: error.message || 'Failed to send OTP. Please try again.' }));
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  // Verify OTP (validate ONLY OTP code)
+  const handleVerifyOTP = async () => {
+    if (!otpCode || otpCode.length !== 4) {
+      setErrors(prev => ({ ...prev, otp: 'Please enter a valid 4-digit OTP' }));
+      return;
+    }
+
+    setIsVerifying(true);
+    setErrors(prev => ({ ...prev, otp: '' }));
+    
+    try {
+      await api.verifyOTP(formData.email, otpCode);
+      setOtpVerified(true);
+      setErrors(prev => ({ ...prev, otp: '' }));
+    } catch (error) {
+      setErrors(prev => ({ ...prev, otp: error.message || 'Invalid or expired OTP' }));
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // Handle final registration (validate ALL fields)
+  const handleFinalSubmit = async () => {
+    // Validate all fields including OTP verification
+    if (!validateAllFields()) {
       return;
     }
 
@@ -244,6 +266,7 @@ const RegisterPage = () => {
         email: '',
         password: '',
         confirmPassword: '',
+        otp: '',
         form: 'Registration successful! Redirecting to dashboard...'
       });
       
@@ -257,9 +280,8 @@ const RegisterPage = () => {
         ...prev,
         form: error.message || 'Registration failed. Please try again.'
       }));
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   };
 
   // Navigate to login page
@@ -326,10 +348,10 @@ const RegisterPage = () => {
                   className={`form-input ${errors.email ? 'input-error' : ''}`}
                   value={formData.email}
                   onChange={handleChange}
-                  disabled={isSubmitting || otpSent}
+                  disabled={isSubmitting || otpVerified}
                   style={{ flex: 1 }}
                 />
-                {!otpSent ? (
+                {!otpSent && !otpVerified ? (
                   <button
                     type="button"
                     className="send-otp-btn"
@@ -338,6 +360,8 @@ const RegisterPage = () => {
                   >
                     {isSendingOtp ? 'Sending...' : 'Send OTP'}
                   </button>
+                ) : otpVerified ? (
+                  <span className="otp-verified-badge">✓ Email Verified</span>
                 ) : (
                   <span className="otp-sent-badge">✓ OTP Sent</span>
                 )}
@@ -348,7 +372,7 @@ const RegisterPage = () => {
             </div>
 
             {/* OTP Verification Section */}
-            {otpSent && (
+            {otpSent && !otpVerified && (
               <div className="input-group otp-section">
                 <label className="input-label">Enter OTP</label>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -371,14 +395,19 @@ const RegisterPage = () => {
                     {isVerifying ? 'Verifying...' : 'Verify'}
                   </button>
                 </div>
-                {otpError && (
-                  <div className="error-text" style={{ color: '#dc2626', marginTop: '8px' }}>
-                    {otpError}
-                  </div>
+                {errors.otp && (
+                  <div className="error-text">{errors.otp}</div>
                 )}
                 <div className="otp-hint">
                   Enter the 4-digit code sent to your email. Valid for 5 minutes.
                 </div>
+              </div>
+            )}
+
+            {/* Show success message when verified */}
+            {otpVerified && (
+              <div className="otp-success-message">
+                ✓ Email verified successfully! You can now create your account.
               </div>
             )}
 
@@ -476,18 +505,18 @@ const RegisterPage = () => {
 
             <div className="divider"></div>
 
+            {/* SUBMIT BUTTON - Only validates all fields on click */}
             <button 
               type="button"
               className="submit-btn"
-              onClick={handleSendOTP}
-              disabled={isSubmitting || !formData.email || !validateEmail(formData.email)}
-              style={{ marginBottom: '10px' }}
+              onClick={handleFinalSubmit}
+              disabled={isSubmitting}
             >
-              {isSubmitting ? 'Creating Account...' : 'Send OTP'}
+              {isSubmitting ? 'Creating Account...' : 'Submit'}
             </button>
             
             <div className="register-note">
-              By clicking "Send OTP", you agree to our Terms of Service and Privacy Policy.
+              By clicking "Submit", you agree to our Terms of Service and Privacy Policy.
             </div>
           </form>
         </div>

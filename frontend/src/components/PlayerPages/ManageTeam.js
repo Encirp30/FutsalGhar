@@ -121,7 +121,8 @@ const ManageTeam = () => {
     setProcessingRequestId(requestId);
     try {
       await api.approveJoinRequest(id, requestId);
-      setSuccess('Player joined the team successfully!');
+      setSuccess('Player has been approved and joined the team successfully!');
+      setError('');
       
       // Refresh team data
       const teamResponse = await api.getTeam(id);
@@ -132,20 +133,22 @@ const ManageTeam = () => {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message || 'Failed to approve request');
+      setSuccess('');
       setTimeout(() => setError(''), 3000);
     } finally {
       setProcessingRequestId(null);
     }
   };
 
-  // Handle Reject Join Request
+  // Handle Reject Join Request 
   const handleRejectRequest = async (requestId) => {
     if (!window.confirm('Reject this player\'s request to join?')) return;
     
     setProcessingRequestId(requestId);
     try {
       await api.rejectJoinRequest(id, requestId);
-      setSuccess('Join request rejected');
+      setError('Join request has been rejected.');  
+      setSuccess('');  // Clear any success message
       
       // Refresh team data
       const teamResponse = await api.getTeam(id);
@@ -153,9 +156,10 @@ const ManageTeam = () => {
       setTeam(teamData);
       setJoinRequests(teamData.joinRequests || []);
       
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setError(''), 3000);
     } catch (err) {
       setError(err.message || 'Failed to reject request');
+      setSuccess('');
       setTimeout(() => setError(''), 3000);
     } finally {
       setProcessingRequestId(null);
@@ -360,7 +364,7 @@ const ManageTeam = () => {
         {error && <div className="banner error">{error}</div>}
         {success && <div className="banner success">{success}</div>}
 
-        {/* JOIN REQUESTS SECTION WITH VIEW PROFILE BUTTON */}
+        {/* JOIN REQUESTS SECTION */}
         {joinRequests.length > 0 && (
           <div className="join-requests-card">
             <div className="card-header">
@@ -446,7 +450,7 @@ const ManageTeam = () => {
                               className="table-input" 
                             />
                           </td>
-                           <td>
+                          <td>
                             <select 
                               value={editFormData.position} 
                               onChange={e => handleEditChange('position', e.target.value)} 
@@ -457,7 +461,7 @@ const ManageTeam = () => {
                               ))}
                             </select>
                           </td>
-                           <td>
+                          <td>
                             <input 
                               type="number" 
                               value={editFormData.jerseyNumber} 
@@ -465,7 +469,7 @@ const ManageTeam = () => {
                               className="table-input small" 
                             />
                           </td>
-                           <td>
+                          <td>
                             <button 
                               className={`status-pill ${editFormData.isActive ? 'active' : 'inactive'}`}
                               onClick={() => handleEditChange('isActive', !editFormData.isActive)}
@@ -484,13 +488,13 @@ const ManageTeam = () => {
                         </>
                       ) : (
                         <>
-                           <td>
+                          <td>
                             <div className="player-cell">
                               <span className="p-name">{player.player?.fullName || player.name}</span>
                               {isTeamCaptain && <span className="badge-captain">Captain</span>}
                               {!player.player && !isTeamCaptain && <span className="badge-guest">Guest</span>}
                             </div>
-                           </td>
+                          </td>
                           <td className="capitalize">{player.position}</td>
                           <td><strong>#{player.jerseyNumber}</strong></td>
                           <td>
@@ -500,7 +504,7 @@ const ManageTeam = () => {
                             >
                               {player.isActive !== false ? 'Active' : 'Inactive'}
                             </button>
-                           </td>
+                          </td>
                           <td className="actions">
                             <button className="edit-btn" onClick={() => handleEditClick(index, player)} title="Edit">
                               Edit
@@ -508,10 +512,10 @@ const ManageTeam = () => {
                             <button className="remove-btn" onClick={() => handleRemovePlayer(index)} title="Remove">
                               Remove
                             </button>
-                           </td>
+                          </td>
                         </>
                       )}
-                     </tr>
+                    </tr>
                   );
                 })}
               </tbody>

@@ -107,6 +107,7 @@ const TeamsList = () => {
     setShowJoinModal(true);
   };
 
+  // FIXED: submitJoinRequest with proper error messages
   const submitJoinRequest = async () => {
     if (!joinMessage.trim()) {
       alert('Please enter a message for the team captain');
@@ -123,7 +124,21 @@ const TeamsList = () => {
       setJoinMessage('');
     } catch (error) {
       console.error('Error sending join request:', error);
-      alert('Failed to send join request. Please try again.');
+      
+      // Display specific error message from backend
+      const errorMessage = error.message;
+      
+      if (errorMessage === 'Join request already sent') {
+        alert('You have already sent a join request to this team. Please wait for the captain to respond.');
+      } else if (errorMessage === 'You are already a member of this team') {
+        alert('You are already a member of this team.');
+      } else if (errorMessage === 'Team not found') {
+        alert('Team not found. Please refresh and try again.');
+      } else if (errorMessage && errorMessage.includes('Cast to ObjectId failed')) {
+        alert('Invalid team. Please refresh the page and try again.');
+      } else {
+        alert(errorMessage || 'Failed to send join request. Please try again.');
+      }
     }
     
     setIsSubmitting(false);
