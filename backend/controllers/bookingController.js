@@ -78,7 +78,7 @@ exports.createBooking = async (req, res) => {
 
     await booking.save();
 
-    // Update user wallet if payment method is wallet
+    // Update user wallet
     if (paymentMethod === 'wallet') {
       const user = await User.findById(req.userId);
       user.walletBalance -= totalCost;
@@ -158,7 +158,7 @@ exports.getUserBookings = async (req, res) => {
     
     const now = new Date();
 
-    // Helper function to check if a booking is past (date + time)
+    // Checking if a booking is past (date + time)
     const getBookingDateTime = (booking) => {
       const bookingDate = new Date(booking.date);
       const timeRegex = /(\d+):(\d+)/;
@@ -348,7 +348,7 @@ exports.cancelBooking = async (req, res) => {
   }
 };
 
-// Reschedule booking (UPDATE ONLY - does not create new booking)
+// Reschedule booking 
 exports.rescheduleBooking = async (req, res) => {
   try {
     const { id } = req.params;
@@ -402,7 +402,7 @@ exports.rescheduleBooking = async (req, res) => {
       startTime: newStartTime,
       endTime: newEndTime,
       status: { $ne: 'cancelled' },
-      _id: { $ne: id }  // Exclude current booking from conflict check
+      _id: { $ne: id }  
     });
 
     if (conflictingBooking) {
@@ -424,7 +424,7 @@ exports.rescheduleBooking = async (req, res) => {
       rescheduledBy: 'player'
     };
 
-    // UPDATE the existing booking (does NOT create a new one)
+    // UPDATE the existing booking 
     const updatedBooking = await Booking.findByIdAndUpdate(
       id,
       {
@@ -578,7 +578,6 @@ exports.getBookedSlots = async (req, res) => {
 };
 
 // ========== UPDATE PAYMENT STATUS (ADMIN ONLY) ==========
-// Update booking payment status
 exports.updatePaymentStatus = async (req, res) => {
   try {
     const { id } = req.params;

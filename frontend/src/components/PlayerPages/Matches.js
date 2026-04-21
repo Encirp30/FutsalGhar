@@ -373,7 +373,7 @@ const handleViewStats = async (match) => {
         apiFetch(`/teams/${teamBId}`)
       ]);
       
-      // FIXED: Prioritize p.player._id (User ID) over p._id (team entry ID)
+      // Prioritize p.player._id (User ID) over p._id (team entry ID)
       const teamAPlayersList = (teamAData.team?.players || teamAData.data?.players || []).map(p => ({
         ...p,
         playerId: p.player?._id || (typeof p.player === 'string' ? p.player : p._id),

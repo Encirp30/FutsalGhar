@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getAuthToken } from '../../services/api';
 import './Dashboard.css';
@@ -15,7 +15,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [recentActivities, setRecentActivities] = useState([]);
 
-  const fetchDashboardData = async () => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchDashboardData = useCallback(async () => {
     try {
       const token = getAuthToken();
       if (!token) {
@@ -142,12 +143,12 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   // Initial load
   useEffect(() => {
     fetchDashboardData();
-  }, [navigate]);
+  }, [navigate, fetchDashboardData]);
 
   // Refresh when tab becomes visible again
   useEffect(() => {
@@ -158,9 +159,9 @@ const Dashboard = () => {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, [fetchDashboardData]);
 
-  // ✅ NEW: Auto-refresh every 30 seconds
+  // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (!document.hidden) {
@@ -169,8 +170,9 @@ const Dashboard = () => {
     }, 30000); // 30 seconds
     
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchDashboardData]);
 
+  // eslint-disable-next-line no-unused-vars
   const totalSpent = bookings
     .filter(b => b.status !== 'cancelled')
     .reduce((sum, b) => {

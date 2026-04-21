@@ -35,7 +35,7 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Set role (default to 'user', can be 'manager' if specified)
+    // Setting role
     const userRole = role === 'manager' ? 'manager' : 'user';
 
     const user = new User({

@@ -155,7 +155,6 @@ exports.getAllMatches = async (req, res) => {
 };
 
 // Get match details
-// Get match details
 exports.getMatchById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -201,7 +200,7 @@ exports.getMatchById = async (req, res) => {
   }
 };
 
-// Update match result (Manual entry by Manager/Admin) - WITH FIXED PLAYER STATS (ALL PLAYERS GET MATCHES PLAYED)
+// Update match result (Manual entry by Manager/Admin)
 exports.updateMatchResult = async (req, res) => {
   try {
     const { id } = req.params;
@@ -312,7 +311,7 @@ exports.updateMatchResult = async (req, res) => {
         }
       }
       
-      // 3. CRITICAL FIX: ALL players in both teams get matchesPlayed +1
+      
       // Get all players from both teams
       const teamA = await Team.findById(teamAId);
       const teamB = await Team.findById(teamBId);
@@ -546,7 +545,6 @@ exports.deleteMatch = async (req, res) => {
   }
 };
 
-// ========== UPGRADED: Scoreboard Webhook Integration with Detailed Events ==========
 exports.webhookUpdateMatchResult = async (req, res) => {
   try {
     const { id } = req.params;
@@ -692,7 +690,6 @@ exports.webhookUpdateMatchResult = async (req, res) => {
           }
         }
         
-        // CRITICAL FIX: ALL players in both teams get matchesPlayed +1
         const teamA = await Team.findById(teamAId);
         const teamB = await Team.findById(teamBId);
         

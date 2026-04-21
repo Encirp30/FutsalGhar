@@ -159,7 +159,7 @@ exports.createCourt = async (req, res) => {
   }
 };
 
-// Update court (for managers and admins) - FIXED: Admin can update any court
+// Update court (for managers and admins)
 exports.updateCourt = async (req, res) => {
   try {
     const { id } = req.params;
@@ -229,7 +229,7 @@ exports.updateCourt = async (req, res) => {
   }
 };
 
-// Get manager's courts (or all courts for admin) - FIXED: Admin sees all courts
+// Get manager's courts (or all courts for admin)
 exports.getManagerCourts = async (req, res) => {
   try {
     let courts;
@@ -298,7 +298,6 @@ exports.blockTimeSlot = async (req, res) => {
   }
 };
 
-// Delete court (for managers and admins) - FIXED: Admin can delete any court
 exports.deleteCourt = async (req, res) => {
   try {
     const { id } = req.params;

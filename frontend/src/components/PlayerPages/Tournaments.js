@@ -534,7 +534,7 @@ const Tournaments = () => {
         </div>
       </div>
 
-      {/* Tournament Details Modal - Improved UI */}
+      {/* Tournament Details Modal */}
       {showDetailsModal && selectedTournament && (
         <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
           <div className="tournament-modal" onClick={(e) => e.stopPropagation()}>

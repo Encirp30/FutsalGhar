@@ -15,7 +15,7 @@ router.get('/manager/courts', auth, authorize('manager'), courtController.getMan
 router.post('/:id/block-slot', auth, authorize('manager', 'admin'), courtController.blockTimeSlot);
 router.delete('/:id', auth, authorize('manager', 'admin'), courtController.deleteCourt);
 
-// NEW: Get all courts for manager (including closed courts)
+// Get all courts for manager (including closed courts)
 router.get('/manager/all', auth, authorize('manager', 'admin'), courtController.getAllCourtsForManager);
 
 module.exports = router;

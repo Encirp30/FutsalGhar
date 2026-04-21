@@ -17,7 +17,7 @@ router.get('/team/tournaments', auth, tournamentController.getTeamTournaments);
 router.put('/:id/status', auth, authorize('admin', 'manager'), tournamentController.updateTournamentStatus);
 router.put('/:id/declare-winner', auth, authorize('admin', 'manager'), tournamentController.declareWinner);
 
-// NEW: Update tournament details (for managers/admins)
+// Update tournament details (for managers/admins)
 router.put('/:id', auth, authorize('manager', 'admin'), tournamentController.updateTournament);
 
 // Delete tournament (for managers/admins)

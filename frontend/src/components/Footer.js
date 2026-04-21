@@ -23,7 +23,7 @@ const Footer = () => {
 
   // Get quick links based on role
   const getQuickLinks = () => {
-    // Admin quick links - FIXED: Removed Manager Dashboard, added Tournaments and Matches
+    // Admin quick links
     if (userRole === 'admin') {
       return [
         { label: 'Admin Panel', path: '/admin-panel' },
@@ -36,7 +36,7 @@ const Footer = () => {
       ];
     }
     
-    // Manager quick links - FIXED: Added Bookings
+    // Manager quick links 
     if (userRole === 'manager') {
       return [
         { label: 'Dashboard', path: '/manager-dashboard' },

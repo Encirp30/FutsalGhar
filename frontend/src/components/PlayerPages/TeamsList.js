@@ -9,7 +9,8 @@ const TeamsList = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [allTeams, setAllTeams] = useState([]);
-  const [myTeams, setMyTeams] = useState([]);
+  // eslint-disable-next-line no-unused-vars
+  const [_myTeams, setMyTeams] = useState([]);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -107,7 +108,7 @@ const TeamsList = () => {
     setShowJoinModal(true);
   };
 
-  // FIXED: submitJoinRequest with proper error messages
+  // submitJoinRequest with proper error messages
   const submitJoinRequest = async () => {
     if (!joinMessage.trim()) {
       alert('Please enter a message for the team captain');

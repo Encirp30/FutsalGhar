@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import Layout from '../Layout';
@@ -266,7 +266,7 @@ const CreateTeam = () => {
                                                 <div className="player-position">{player.position}</div>
                                             </div>
                                             <div className="player-footer">
-                                                {/* FIXED: Removed "Admin Only" and allowed selection */}
+                                                {/* Allowed selection */}
                                                 <button 
                                                     className={`captain-btn ${player.isCaptain ? 'is-captain' : ''}`}
                                                     onClick={() => handleSetCaptain(player.id)}

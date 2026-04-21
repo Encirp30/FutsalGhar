@@ -45,7 +45,6 @@ const ManagerDashboard = () => {
           setRecentBookings([]);
         }
 
-        // ✅ FIXED: Revenue data is in revenueData.revenue, not revenueData.data
         try {
           const revenueData = await apiFetch('/manager/revenue');
           setTotalRevenue(revenueData.revenue?.totalRevenue || 0);

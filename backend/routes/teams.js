@@ -18,7 +18,7 @@ router.put('/:id/roster', auth, teamController.updateTeamRoster);
 router.put('/:id/remove-player/:playerId', auth, teamController.removePlayer);
 router.put('/:id/leave', auth, teamController.leaveTeam);
 
-// ✅ FIXED: Join request routes - using PUT to match frontend API calls
+// Join request routes - using PUT to match frontend API calls
 router.put('/:id/join-request/:requestId/approve', auth, teamController.approveJoinRequest);
 router.put('/:id/join-request/:requestId/reject', auth, teamController.rejectJoinRequest);
 

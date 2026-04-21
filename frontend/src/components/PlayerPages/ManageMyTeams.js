@@ -8,7 +8,8 @@ const ManageMyTeams = () => {
   const [myOwnedTeams, setMyOwnedTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [currentUser, setCurrentUser] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [_currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
 
   // Team owner check using user data from API

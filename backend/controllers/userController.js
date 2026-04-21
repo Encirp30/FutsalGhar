@@ -279,7 +279,6 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// ================= ✅ ADDED: GET USER BY ID (for viewing player profiles) =================
 exports.getUserById = async (req, res) => {
   try {
     const { id } = req.params;

@@ -261,7 +261,7 @@ exports.sendJoinRequest = async (req, res) => {
       });
     }
 
-    // Check if already a member - FIXED: handle null player values
+   
     const isMember = team.players.some(p => {
       if (!p.player) return false;
       return p.player.toString() === req.userId.toString();
@@ -274,7 +274,7 @@ exports.sendJoinRequest = async (req, res) => {
       });
     }
 
-    // Check if request already exists - FIXED: handle null player values
+    // Check if request already exists
     const existingRequest = team.joinRequests.find(r => {
       if (!r.player) return false;
       return r.player.toString() === req.userId.toString() && r.status === 'pending';
@@ -324,7 +324,7 @@ exports.sendJoinRequest = async (req, res) => {
   }
 };
 
-// Approve join request (captain only) - FULLY FIXED
+// Approve join request 
 exports.approveJoinRequest = async (req, res) => {
   try {
     const { id, requestId } = req.params;
@@ -473,7 +473,7 @@ exports.rejectJoinRequest = async (req, res) => {
   }
 };
 
-// Update team (captain only) - FIXED to allow players array update
+// Update team (captain only)
 exports.updateTeam = async (req, res) => {
   try {
     const { id } = req.params;
@@ -495,7 +495,6 @@ exports.updateTeam = async (req, res) => {
       });
     }
 
-    // FIXED: Allow updating 'players' field
     // Removed 'players' from the excluded list so it can be updated
     Object.keys(updates).forEach(key => {
       if (!['captain', 'joinRequests'].includes(key)) {
@@ -592,7 +591,6 @@ exports.removePlayer = async (req, res) => {
   }
 };
 
-// Update player roster (captain, manager, or admin) - FIXED to allow manager
 exports.updateTeamRoster = async (req, res) => {
   try {
     const { id } = req.params;

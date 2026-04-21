@@ -25,7 +25,8 @@ const RegisterPage = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [otpError, setOtpError] = useState('');
+  // eslint-disable-next-line no-unused-vars
+  const [_otpError, setOtpError] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
 
@@ -361,9 +362,9 @@ const RegisterPage = () => {
                     {isSendingOtp ? 'Sending...' : 'Send OTP'}
                   </button>
                 ) : otpVerified ? (
-                  <span className="otp-verified-badge">✓ Email Verified</span>
+                  <span className="otp-verified-badge">Email Verified</span>
                 ) : (
-                  <span className="otp-sent-badge">✓ OTP Sent</span>
+                  <span className="otp-sent-badge">OTP Sent</span>
                 )}
               </div>
               {errors.email && (

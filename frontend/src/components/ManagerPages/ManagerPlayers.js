@@ -6,7 +6,8 @@ import './ManagerPlayers.css';
 
 const ManagerPlayers = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [_user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [players, setPlayers] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -127,7 +128,7 @@ const ManagerPlayers = () => {
     };
     
     fetchManagerPlayers();
-  }, [navigate]);
+  }, [navigate, playerDetailsMap]);
 
   const getTeamCaptainDetails = async (teamId) => {
     const team = teams.find(t => t._id === teamId);

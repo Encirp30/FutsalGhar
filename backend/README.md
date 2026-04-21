@@ -2,7 +2,7 @@
 
 A comprehensive Node.js/Express backend with MongoDB for the FutsalPro futsal court booking and team management platform.
 
-## 🚀 Features
+##  Features
 
 ### Player Features
 - ✅ User authentication with JWT
@@ -45,7 +45,7 @@ A comprehensive Node.js/Express backend with MongoDB for the FutsalPro futsal co
 - **Authentication**: JWT (JSON Web Tokens)
 - **Other**: Bcrypt (password hashing), Nodemailer (emails), Cloudinary (file uploads)
 
-## 📦 Installation
+##  Installation
 
 ### Prerequisites
 - Node.js (v14 or higher)
@@ -93,7 +93,7 @@ A comprehensive Node.js/Express backend with MongoDB for the FutsalPro futsal co
 
 5. **Server will start on** `http://localhost:5000`
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 backend/
@@ -149,7 +149,7 @@ backend/
 └── README.md                # This file
 ```
 
-## 🔐 Authentication
+##  Authentication
 
 The API uses JWT (JSON Web Tokens) for authentication:
 
@@ -161,7 +161,7 @@ The API uses JWT (JSON Web Tokens) for authentication:
 Authorization: Bearer {token}
 ```
 
-## 📚 API Documentation
+##  API Documentation
 
 Full API documentation is available in `API_DOCUMENTATION.md`
 
@@ -182,7 +182,7 @@ Full API documentation is available in `API_DOCUMENTATION.md`
 - `/manager` - Manager operations
 - `/admin` - Admin operations
 
-## 🗄️ Database Schema Overview
+##  Database Schema Overview
 
 ### User Collection
 ```javascript
@@ -229,7 +229,7 @@ Full API documentation is available in `API_DOCUMENTATION.md`
 }
 ```
 
-## 🔄 Key API Workflows
+##  Key API Workflows
 
 ### Booking Flow
 1. User browses courts → `GET /courts`
@@ -251,13 +251,13 @@ Full API documentation is available in `API_DOCUMENTATION.md`
 3. Matches are scheduled → `POST /matches`
 4. Results are entered → `PUT /matches/:id/result`
 
-## 📊 Analytics & Reporting
+##  Analytics & Reporting
 
 - **Player Dashboard**: Bookings, upcoming matches, statistics
 - **Manager Analytics**: Revenue, utilization rate, customer insights
 - **Admin Reports**: System-wide statistics, user activity, revenue trends
 
-## 🚨 Error Handling
+##  Error Handling
 
 All responses include a `success` boolean and appropriate HTTP status codes:
 
@@ -269,7 +269,7 @@ All responses include a `success` boolean and appropriate HTTP status codes:
 { success: false, message: "Error description" }
 ```
 
-## 🔐 Security Features
+##  Security Features
 
 - ✅ Password hashing with bcryptjs
 - ✅ JWT token authentication
@@ -278,27 +278,27 @@ All responses include a `success` boolean and appropriate HTTP status codes:
 - ✅ CORS enabled for frontend
 - ✅ Error handling middleware
 
-## 📧 Email Features
+##  Email Features
 
 - Welcome emails on registration
 - Password reset emails
 - Booking confirmation emails
 - Notification emails
 
-## 💳 Payment Integration Ready
+##  Payment Integration Ready
 
 Framework for integration with:
 - eSewa
 - Khalti
 - Wallet system
 
-## 🔄 Real-time Features (Ready for Socket.io)
+##  Real-time Features (Ready for Socket.io)
 
 - Live court availability updates
 - Real-time notifications
 - Live match updates
 
-## 🚀 Deployment
+##  Deployment
 
 ### Deploy to Heroku
 ```bash
@@ -314,7 +314,7 @@ heroku config:set JWT_SECRET=your_secret_key
 # ... set other variables
 ```
 
-## 🤝 Integration with Frontend
+##  Integration with Frontend
 
 The frontend React app can now:
 1. Make API calls to these endpoints
@@ -322,7 +322,7 @@ The frontend React app can now:
 3. Include token in Authorization headers
 4. Display real-time data in components
 
-## 📝 Example Frontend Integration
+##  Example Frontend Integration
 
 ```javascript
 // Login Example
@@ -345,7 +345,7 @@ const response = await fetch('http://localhost:5000/api/bookings', {
 });
 ```
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### MongoDB Connection Issues
 - Verify connection string in `.env`
@@ -362,15 +362,15 @@ const response = await fetch('http://localhost:5000/api/bookings', {
 - Check token expiration in Authorization header
 - Token format should be: `Bearer {token}`
 
-## 📞 Support
+##  Support
 
 For issues or questions, refer to `API_DOCUMENTATION.md` for detailed endpoint information.
 
-## 📄 License
+##  License
 
 ISC
 
-## 👨‍💻 Developer Notes
+##  Developer Notes
 
 This backend is production-ready and fully implements all features required for the FutsalPro platform. All routes are documented, authenticated, and validated. The frontend can begin integration immediately.
 
@@ -384,4 +384,4 @@ This backend is production-ready and fully implements all features required for 
 - ✅ Database indexes for performance
 - ✅ Comprehensive API documentation
 
-Happy coding! 🚀
+Happy coding! 

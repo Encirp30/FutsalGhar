@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-// Create transporter - use EITHER service OR host/port, not both
+// Create transporter
 const transporter = nodemailer.createTransport({
   service: process.env.EMAIL_SERVICE, // e.g., 'gmail' - remove this if using custom host
   auth: {
@@ -8,17 +8,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD
   }
 });
-
-// Alternative: Use host/port (uncomment if not using service)
-// const transporter = nodemailer.createTransport({
-//   host: process.env.EMAIL_HOST,
-//   port: process.env.EMAIL_PORT,
-//   secure: false, // true for 465, false for other ports
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASSWORD
-//   }
-// });
 
 const sendEmail = async (email, subject, html) => {
   try {

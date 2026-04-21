@@ -5,7 +5,7 @@ const User = require('./models/User');
 const seedUsers = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log('✅ MongoDB Connected');
+    console.log('MongoDB Connected');
 
     await User.deleteMany({ role: { $in: ['admin', 'manager'] } });
 
@@ -18,7 +18,7 @@ const seedUsers = async () => {
       profile: { fullName: 'Admin User' }
     });
     await admin.save();
-    console.log('✅ Admin created');
+    console.log('Admin created');
 
     const manager = new User({
       username: 'manager',
@@ -29,14 +29,14 @@ const seedUsers = async () => {
       profile: { fullName: 'Manager User' }
     });
     await manager.save();
-    console.log('✅ Manager created');
+    console.log('Manager created');
 
-    console.log('🎉 Done! Login with:');
+    console.log(' Done! Login with:');
     console.log('   Admin: admin / admin123');
     console.log('   Manager: manager / manager123');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error(' Error:', error);
     process.exit(1);
   }
 };

@@ -432,7 +432,6 @@ exports.getRevenueReport = async (req, res) => {
   }
 };
 
-// ========== DELETE USER (ADMIN ONLY) ==========
 // Delete user account - Admin only
 exports.deleteUser = async (req, res) => {
   try {
@@ -470,7 +469,6 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// ========== GET ALL BOOKINGS (ADMIN ONLY) ==========
 // Get all bookings across all courts
 exports.getAllBookings = async (req, res) => {
   try {
